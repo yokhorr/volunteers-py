@@ -16,3 +16,14 @@ class AddAssessmentResponse(BaseSuccessResponse):
 class EditAssessmentRequest(BaseModel):
     comment: str | None = None
     value: float | None = None
+
+
+class AssessmentItem(BaseModel):
+    assessment_id: int
+    user_day_id: int
+    comment: str
+    value: float
+
+
+class AssessmentsResponse(BaseModel):
+    assessments: list[AssessmentItem]
