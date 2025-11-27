@@ -1112,6 +1112,7 @@ function RouteComponent() {
         user.last_name_ru,
         user.first_name_en,
         user.last_name_en,
+        user.isu_id,
         position.name,
         hall?.name,
       ].join("\t");
