@@ -66,8 +66,9 @@ volunteers/
 - [X] Experience in the assignment table
 - [X] Experiment with a sliding drawer for the users
 - [ ] Scores
-- [ ] Hall manager positions
-- [ ] Attendance
+- [X] Hall manager positions
+- [X] Attendance
+- [X] Copy assignments from one day to another
 - [ ] Year specific positions should be copied from the previous year with theirs scores saved
 - [ ] Diploma generation
 - [ ] csv export
