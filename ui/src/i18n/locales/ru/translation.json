@@ -216,5 +216,19 @@
   "Comment": "Комментарий",
   "Value": "Значение",
   "No assessment": "Нет оценки",
-  "Select Attendance": "Выберите посещаемость"
+  "Select Attendance": "Выберите посещаемость",
+  "Copy assignments from day": "Копировать назначения из дня",
+  "Select a day to copy assignments from and choose the copy method.": "Выберите день, из которого копировать назначения, и выберите метод копирования.",
+  "Select a day": "Выберите день",
+  "Source Day": "Исходный день",
+  "Copy Method": "Метод копирования",
+  "Normal": "Обычный",
+  "Skip assignments for users who already have assignments on this day": "Пропустить назначения для пользователей, у которых уже есть назначения на этот день",
+  "Overwrite": "Перезаписать",
+  "Overwrite existing assignments for users who already have assignments": "Перезаписать существующие назначения для пользователей, у которых уже есть назначения",
+  "Replace All": "Заменить все",
+  "Delete all current assignments and copy all from source day": "Удалить все текущие назначения и скопировать все из исходного дня",
+  "Failed to copy assignments. Please try again.": "Не удалось скопировать назначения. Попробуйте еще раз.",
+  "Copying...": "Копирование...",
+  "Copy Assignments": "Копировать назначения"
 }

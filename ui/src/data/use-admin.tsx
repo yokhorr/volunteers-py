@@ -5,6 +5,7 @@ import {
   addPositionApiV1AdminPositionAddPost,
   addUserDayApiV1AdminUserDayAddPost,
   addYearApiV1AdminYearAddPost,
+  copyAssignmentsApiV1AdminDayCopyAssignmentsPost,
   deleteUserDayApiV1AdminUserDayUserDayIdDelete,
   editDayApiV1AdminDayDayIdEditPost,
   editHallApiV1AdminHallHallIdEditPost,
@@ -27,6 +28,7 @@ import type {
   AddPositionRequest,
   AddUserDayRequest,
   AddYearRequest,
+  CopyAssignmentsRequest,
   EditDayRequest,
   EditHallRequest,
   EditPositionRequest,
@@ -455,5 +457,29 @@ export const useDayAssignments = (dayId: string | number) => {
       return response.data;
     },
     enabled: !!dayId,
+  });
+};
+
+export const useCopyAssignments = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CopyAssignmentsRequest) => {
+      const response = await copyAssignmentsApiV1AdminDayCopyAssignmentsPost({
+        body: data,
+        throwOnError: true,
+      });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate assignments for the target day
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.assignments.day(variables.target_day_id),
+      });
+      // Also invalidate assignments for the source day in case it's being viewed
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.assignments.day(variables.source_day_id),
+      });
+    },
   });
 };

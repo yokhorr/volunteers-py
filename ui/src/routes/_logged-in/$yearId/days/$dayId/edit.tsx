@@ -30,10 +30,19 @@ import {
   Card,
   CardContent,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
+  FormControl,
   FormControlLabel,
   IconButton,
+  MenuItem,
   Paper,
+  Radio,
+  RadioGroup,
+  Select,
   Switch,
   Typography,
   useMediaQuery,
@@ -49,6 +58,7 @@ import type {
 } from "@/client/types.gen";
 import { DetailedUserCard } from "@/components/DetailedUserCard";
 import {
+  useCopyAssignments,
   useDayAssignments,
   useEditDay,
   useRegistrationForms,
@@ -776,6 +786,11 @@ function RouteComponent() {
   const { yearId, dayId } = Route.useParams();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isDrawerPinned, setIsDrawerPinned] = useState(true);
+  const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+  const [selectedSourceDayId, setSelectedSourceDayId] = useState<string>("");
+  const [copyMethod, setCopyMethod] = useState<
+    "normal" | "overwrite" | "replace"
+  >("normal");
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -802,6 +817,8 @@ function RouteComponent() {
   // Fetch days to get current assignment_published value
   // TODO: highly vibe-coded, works for now. Not sure i'd recommend ever touching this.
   const { data: daysData } = useYearDays(yearId);
+
+  const copyAssignmentsMutation = useCopyAssignments();
   const currentDay = daysData?.find((d) => d.day_id === Number(dayId));
   const [assignmentPublished, setAssignmentPublished] = useState(
     currentDay?.assignment_published ?? false,
@@ -1128,6 +1145,26 @@ function RouteComponent() {
     navigator.clipboard.writeText(`${data.join("\n")}\n`);
   }, [positions]);
 
+  const handleCopyAssignments = useCallback(() => {
+    if (!selectedSourceDayId) return;
+
+    copyAssignmentsMutation.mutate(
+      {
+        source_day_id: Number(selectedSourceDayId),
+        target_day_id: Number(dayId),
+        replace_all: copyMethod === "replace",
+        overwrite_existing: copyMethod === "overwrite",
+      },
+      {
+        onSuccess: () => {
+          setCopyDialogOpen(false);
+          setSelectedSourceDayId("");
+          setCopyMethod("normal");
+        },
+      },
+    );
+  }, [selectedSourceDayId, dayId, copyMethod, copyAssignmentsMutation]);
+
   if (formsLoading || positionsLoading || assignmentsLoading) {
     return (
       <Box
@@ -1182,15 +1219,25 @@ function RouteComponent() {
           </Typography>
         }
       />
-      <Button
-        variant="outlined"
-        size="small"
-        startIcon={<ContentCopyIcon />}
-        onClick={handleCopyToClipboard}
-        disabled={assignmentsData?.assignments.length === 0}
-      >
-        {t("Copy badges data")}
-      </Button>
+      <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<ContentCopyIcon />}
+          onClick={handleCopyToClipboard}
+          disabled={assignmentsData?.assignments.length === 0}
+        >
+          {t("Copy badges data")}
+        </Button>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<ContentCopyIcon />}
+          onClick={() => setCopyDialogOpen(true)}
+        >
+          {t("Copy assignments from day")}
+        </Button>
+      </Box>
 
       {/* Existing Assignments Summary */}
       {assignmentsData && assignmentsData.assignments.length > 0 && (
@@ -1304,6 +1351,131 @@ function RouteComponent() {
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      {/* Copy Assignments Dialog */}
+      <Dialog
+        open={copyDialogOpen}
+        onClose={() => setCopyDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>{t("Copy assignments from day")}</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            {t(
+              "Select a day to copy assignments from and choose the copy method.",
+            )}
+          </Typography>
+          <FormControl fullWidth sx={{ mb: 3 }}>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              {t("Source Day")}
+            </Typography>
+            <Select
+              value={selectedSourceDayId}
+              onChange={(e) => setSelectedSourceDayId(e.target.value)}
+              displayEmpty
+            >
+              <MenuItem value="" disabled>
+                {t("Select a day")}
+              </MenuItem>
+              {daysData
+                ?.filter((day) => day.day_id !== Number(dayId))
+                .map((day) => (
+                  <MenuItem key={day.day_id} value={day.day_id.toString()}>
+                    {day.name}
+                  </MenuItem>
+                ))}
+            </Select>
+          </FormControl>
+          <FormControl component="fieldset" fullWidth>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              {t("Copy Method")}
+            </Typography>
+            <RadioGroup
+              value={copyMethod}
+              onChange={(e) =>
+                setCopyMethod(
+                  e.target.value as "normal" | "overwrite" | "replace",
+                )
+              }
+            >
+              <FormControlLabel
+                value="normal"
+                control={<Radio />}
+                label={
+                  <Box>
+                    <Typography variant="body2" fontWeight="medium">
+                      {t("Normal")}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {t(
+                        "Skip assignments for users who already have assignments on this day",
+                      )}
+                    </Typography>
+                  </Box>
+                }
+              />
+              <FormControlLabel
+                value="overwrite"
+                control={<Radio />}
+                label={
+                  <Box>
+                    <Typography variant="body2" fontWeight="medium">
+                      {t("Overwrite")}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {t(
+                        "Overwrite existing assignments for users who already have assignments",
+                      )}
+                    </Typography>
+                  </Box>
+                }
+              />
+              <FormControlLabel
+                value="replace"
+                control={<Radio />}
+                label={
+                  <Box>
+                    <Typography variant="body2" fontWeight="medium">
+                      {t("Replace All")}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {t(
+                        "Delete all current assignments and copy all from source day",
+                      )}
+                    </Typography>
+                  </Box>
+                }
+              />
+            </RadioGroup>
+          </FormControl>
+          {copyAssignmentsMutation.isError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {t("Failed to copy assignments. Please try again.")}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setCopyDialogOpen(false);
+              setSelectedSourceDayId("");
+              setCopyMethod("normal");
+            }}
+          >
+            {t("Cancel")}
+          </Button>
+          <Button
+            onClick={handleCopyAssignments}
+            variant="contained"
+            disabled={!selectedSourceDayId || copyAssignmentsMutation.isPending}
+          >
+            {copyAssignmentsMutation.isPending
+              ? t("Copying...")
+              : t("Copy Assignments")}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

@@ -28,6 +28,7 @@ class CopyAssignmentsRequest(BaseModel):
     source_day_id: int
     target_day_id: int
     overwrite_existing: bool = False
+    replace_all: bool = False
 
 
 class CopyAssignmentsResponse(BaseSuccessResponse):

@@ -113,6 +113,7 @@ async def copy_assignments(
         source_day_id=request.source_day_id,
         target_day_id=request.target_day_id,
         overwrite_existing=request.overwrite_existing,
+        replace_all=request.replace_all,
     )
     logger.info(
         f"Copied {copied_count} assignments from day {request.source_day_id} to day {request.target_day_id}"

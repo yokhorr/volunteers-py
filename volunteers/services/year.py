@@ -389,7 +389,11 @@ class YearService(BaseService):
             )
 
     async def copy_assignments_from_day(
-        self, source_day_id: int, target_day_id: int, overwrite_existing: bool = False
+        self,
+        source_day_id: int,
+        target_day_id: int,
+        overwrite_existing: bool = False,
+        replace_all: bool = False,
     ) -> int:
         """Copy all assignments from source day to target day.
 
@@ -397,6 +401,7 @@ class YearService(BaseService):
             source_day_id: The ID of the day to copy assignments from
             target_day_id: The ID of the day to copy assignments to
             overwrite_existing: If True, overwrite existing assignments for users who already have assignments on target day
+            replace_all: If True, delete all existing assignments on target day before copying (overrides overwrite_existing)
 
         Returns:
             The number of assignments copied
@@ -425,17 +430,26 @@ class YearService(BaseService):
             )
             source_assignments_list = list(source_assignments.scalars().all())
 
-            if not source_assignments_list:
-                return 0
-
-            # Get existing assignments for target day (to check for conflicts)
+            # Get existing assignments for target day
             existing_assignments = await session.execute(
                 select(UserDay).where(UserDay.day_id == target_day_id)
             )
             existing_assignments_list = list(existing_assignments.scalars().all())
-            existing_application_form_ids = {
-                assignment.application_form_id for assignment in existing_assignments_list
-            }
+
+            # If replace_all is True, delete all existing assignments first
+            if replace_all:
+                for existing_assignment in existing_assignments_list:
+                    await session.delete(existing_assignment)
+                existing_assignments_list = []
+                existing_application_form_ids: set[int] = set()
+            else:
+                existing_application_form_ids = {
+                    assignment.application_form_id for assignment in existing_assignments_list
+                }
+
+            if not source_assignments_list:
+                await session.commit()
+                return 0
 
             copied_count = 0
 
@@ -444,7 +458,7 @@ class YearService(BaseService):
                 if source_assignment.application_form_id in existing_application_form_ids:
                     if overwrite_existing:
                         # Delete existing assignment
-                        existing_assignment = next(
+                        existing_assignment_to_delete = next(
                             (
                                 a
                                 for a in existing_assignments_list
@@ -452,8 +466,8 @@ class YearService(BaseService):
                             ),
                             None,
                         )
-                        if existing_assignment:
-                            await session.delete(existing_assignment)
+                        if existing_assignment_to_delete is not None:
+                            await session.delete(existing_assignment_to_delete)
                     else:
                         # Skip this assignment
                         continue

@@ -202,5 +202,19 @@
   "Comment": "Comment",
   "Value": "Value",
   "No assessment": "No assessment",
-  "Is manager": "Is manager"
+  "Is manager": "Is manager",
+  "Copy assignments from day": "Copy assignments from day",
+  "Select a day to copy assignments from and choose the copy method.": "Select a day to copy assignments from and choose the copy method.",
+  "Select a day": "Select a day",
+  "Source Day": "Source Day",
+  "Copy Method": "Copy Method",
+  "Normal": "Normal",
+  "Skip assignments for users who already have assignments on this day": "Skip assignments for users who already have assignments on this day",
+  "Overwrite": "Overwrite",
+  "Overwrite existing assignments for users who already have assignments": "Overwrite existing assignments for users who already have assignments",
+  "Replace All": "Replace All",
+  "Delete all current assignments and copy all from source day": "Delete all current assignments and copy all from source day",
+  "Failed to copy assignments. Please try again.": "Failed to copy assignments. Please try again.",
+  "Copying...": "Copying...",
+  "Copy Assignments": "Copy Assignments"
 }

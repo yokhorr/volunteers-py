@@ -133,13 +133,13 @@ export type AttendanceItem = {
     hall_id: number | null;
     hall_name: string | null;
     attendance: Attendance;
-    editable: boolean;
 };
 
 export type CopyAssignmentsRequest = {
     source_day_id: number;
     target_day_id: number;
     overwrite_existing?: boolean;
+    replace_all?: boolean;
 };
 
 export type CopyAssignmentsResponse = {
