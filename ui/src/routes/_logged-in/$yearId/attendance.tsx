@@ -1,5 +1,7 @@
+import AssessmentIcon from "@mui/icons-material/Assessment";
 import {
   Box,
+  IconButton,
   Paper,
   Tab,
   Table,
@@ -9,6 +11,7 @@ import {
   TableHead,
   TableRow,
   Tabs,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import {
@@ -19,6 +22,7 @@ import {
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Attendance, AttendanceItem } from "@/client/types.gen";
+import { AssessmentDialog } from "@/components/AssessmentDialog";
 import {
   AttendanceSelector,
   getAttendanceIcon,
@@ -62,6 +66,14 @@ function RouteComponent() {
   const selectedDayId = search.day;
   const [selectedAttendance, setSelectedAttendance] =
     useState<Attendance>("yes");
+
+  // Assessment dialog state
+  const [assessmentDialog, setAssessmentDialog] = useState<{
+    open: boolean;
+    userDayId: number;
+    volunteerName: string;
+    dayName: string;
+  }>({ open: false, userDayId: 0, volunteerName: "", dayName: "" });
 
   const { data: attendanceData, isLoading: attendanceLoading } =
     useAttendance(yearId);
@@ -176,6 +188,28 @@ function RouteComponent() {
     });
   };
 
+  const handleOpenAssessmentDialog = (
+    userDayId: number,
+    volunteerName: string,
+    dayName: string,
+  ) => {
+    setAssessmentDialog({
+      open: true,
+      userDayId,
+      volunteerName,
+      dayName,
+    });
+  };
+
+  const handleCloseAssessmentDialog = () => {
+    setAssessmentDialog({
+      open: false,
+      userDayId: 0,
+      volunteerName: "",
+      dayName: "",
+    });
+  };
+
   if (attendanceLoading) {
     return (
       <Box sx={{ p: 3 }}>
@@ -232,6 +266,7 @@ function RouteComponent() {
                     {day.day_name}
                   </TableCell>
                 ))}
+                <TableCell align="center">{t("Actions")}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -246,6 +281,7 @@ function RouteComponent() {
                     days={displayedDays}
                     canEditAttendance={canEditAttendance}
                     onAttendanceChange={handleAttendanceChange}
+                    onOpenAssessmentDialog={handleOpenAssessmentDialog}
                     isFirstInPosition={idx === 0}
                     selectedAttendance={selectedAttendance}
                   />
@@ -255,6 +291,15 @@ function RouteComponent() {
           </Table>
         </TableContainer>
       </Box>
+
+      {/* Assessment Dialog */}
+      <AssessmentDialog
+        open={assessmentDialog.open}
+        onClose={handleCloseAssessmentDialog}
+        userDayId={assessmentDialog.userDayId}
+        volunteerName={assessmentDialog.volunteerName}
+        dayName={assessmentDialog.dayName}
+      />
     </Box>
   );
 }
@@ -268,6 +313,11 @@ interface VolunteerRowProps {
     userDayId: number,
     attendance: Attendance,
   ) => Promise<void>;
+  onOpenAssessmentDialog: (
+    userDayId: number,
+    volunteerName: string,
+    dayName: string,
+  ) => void;
   isFirstInPosition: boolean;
   selectedAttendance: Attendance;
 }
@@ -278,6 +328,7 @@ function VolunteerRow({
   days,
   canEditAttendance,
   onAttendanceChange,
+  onOpenAssessmentDialog,
   isFirstInPosition,
   selectedAttendance,
 }: VolunteerRowProps) {
@@ -292,6 +343,11 @@ function VolunteerRow({
 
     await onAttendanceChange(item.user_day_id, attendance);
   };
+
+  // Get the first user_day_id available for this volunteer (for assessment button)
+  // When viewing all days, we use the first day's user_day_id
+  const firstDayItem =
+    days.length > 0 ? volunteer.attendanceByDay.get(days[0].day_id) : undefined;
 
   return (
     <TableRow>
@@ -358,6 +414,28 @@ function VolunteerRow({
           </TableCell>
         );
       })}
+      <TableCell align="center" sx={{ py: 0.5 }}>
+        {days.length === 1 && firstDayItem ? (
+          <Tooltip title={t("Assessment")}>
+            <IconButton
+              size="small"
+              onClick={() =>
+                onOpenAssessmentDialog(
+                  firstDayItem.user_day_id,
+                  volunteer.user_name,
+                  days[0].day_name,
+                )
+              }
+            >
+              <AssessmentIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            -
+          </Typography>
+        )}
+      </TableCell>
     </TableRow>
   );
 }

@@ -1,12 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  addAssessmentApiV1AdminAssessmentAddPost,
   addDayApiV1AdminDayAddPost,
   addHallApiV1AdminHallAddPost,
   addPositionApiV1AdminPositionAddPost,
   addUserDayApiV1AdminUserDayAddPost,
   addYearApiV1AdminYearAddPost,
   copyAssignmentsApiV1AdminDayCopyAssignmentsPost,
+  deleteAssessmentApiV1AdminAssessmentAssessmentIdDelete,
   deleteUserDayApiV1AdminUserDayUserDayIdDelete,
+  editAssessmentApiV1AdminAssessmentAssessmentIdEditPost,
   editDayApiV1AdminDayDayIdEditPost,
   editHallApiV1AdminHallHallIdEditPost,
   editPositionApiV1AdminPositionPositionIdEditPost,
@@ -17,18 +20,21 @@ import {
   getDayAssignmentsApiV1AdminUserDayDayDayIdAssignmentsGet,
   getRegistrationFormsApiV1AdminYearYearIdRegistrationFormsGet,
   getUserByIdApiV1AdminUserUserIdGet,
+  getUserDayAssessmentsApiV1AdminAssessmentUserDayUserDayIdGet,
   getUsersListApiV1AdminYearYearIdUsersGet,
   getYearDaysApiV1AdminDayYearYearIdGet,
   getYearHallsApiV1AdminHallYearYearIdGet,
   getYearPositionsApiV1AdminYearYearIdPositionsGet,
 } from "@/client";
 import type {
+  AddAssessmentRequest,
   AddDayRequest,
   AddHallRequest,
   AddPositionRequest,
   AddUserDayRequest,
   AddYearRequest,
   CopyAssignmentsRequest,
+  EditAssessmentRequest,
   EditDayRequest,
   EditHallRequest,
   EditPositionRequest,
@@ -480,6 +486,100 @@ export const useCopyAssignments = () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.admin.assignments.day(variables.source_day_id),
       });
+    },
+  });
+};
+
+// Assessment hooks
+export const useUserDayAssessments = (userDayId: string | number) => {
+  return useQuery({
+    queryKey: queryKeys.admin.assessments.userDay(userDayId),
+    queryFn: async () => {
+      const response =
+        await getUserDayAssessmentsApiV1AdminAssessmentUserDayUserDayIdGet({
+          path: { user_day_id: Number(userDayId) },
+          throwOnError: true,
+        });
+      return response.data;
+    },
+    enabled: !!userDayId,
+  });
+};
+
+export const useAddAssessment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: AddAssessmentRequest) => {
+      const response = await addAssessmentApiV1AdminAssessmentAddPost({
+        body: data,
+        throwOnError: true,
+      });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.assessments.userDay(variables.user_day_id),
+      });
+      // Also invalidate year queries to update attendance data with assessments
+      queryClient.invalidateQueries({ queryKey: ["year"] });
+    },
+  });
+};
+
+export const useEditAssessment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      assessmentId,
+      data,
+    }: {
+      assessmentId: string | number;
+      userDayId: string | number;
+      data: EditAssessmentRequest;
+    }) => {
+      const response =
+        await editAssessmentApiV1AdminAssessmentAssessmentIdEditPost({
+          path: { assessment_id: Number(assessmentId) },
+          body: data,
+          throwOnError: true,
+        });
+      return response.data;
+    },
+    onSuccess: (_, { userDayId }) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.assessments.userDay(userDayId),
+      });
+      // Also invalidate year queries to update attendance data with assessments
+      queryClient.invalidateQueries({ queryKey: ["year"] });
+    },
+  });
+};
+
+export const useDeleteAssessment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      assessmentId,
+    }: {
+      assessmentId: string | number;
+      userDayId: string | number;
+    }) => {
+      const response =
+        await deleteAssessmentApiV1AdminAssessmentAssessmentIdDelete({
+          path: { assessment_id: Number(assessmentId) },
+          throwOnError: true,
+        });
+      return response.data;
+    },
+    onSuccess: (_, { userDayId }) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.assessments.userDay(userDayId),
+      });
+      // Also invalidate year queries to update attendance data with assessments
+      queryClient.invalidateQueries({ queryKey: ["year"] });
     },
   });
 };

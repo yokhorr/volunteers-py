@@ -80,6 +80,12 @@ export const queryKeys = {
       details: () => [...queryKeys.admin.assessments.all(), "detail"] as const,
       detail: (id: string | number) =>
         [...queryKeys.admin.assessments.details(), id] as const,
+      userDay: (userDayId: string | number) =>
+        [
+          ...queryKeys.admin.assessments.all(),
+          "userDay",
+          String(userDayId),
+        ] as const,
     },
 
     // Admin - User Days
