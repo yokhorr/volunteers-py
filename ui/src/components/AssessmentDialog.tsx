@@ -82,9 +82,14 @@ export function AssessmentDialog({
     });
   };
 
+  const parseValue = (valueStr: string): number | null => {
+    const value = Number.parseFloat(valueStr);
+    return Number.isNaN(value) ? null : value;
+  };
+
   const handleSaveNew = async () => {
-    const value = Number.parseFloat(formState.value);
-    if (Number.isNaN(value)) return;
+    const value = parseValue(formState.value);
+    if (value === null) return;
 
     await addAssessmentMutation.mutateAsync({
       user_day_id: userDayId,
@@ -97,8 +102,8 @@ export function AssessmentDialog({
   const handleSaveEdit = async () => {
     if (!editingAssessment) return;
 
-    const value = Number.parseFloat(formState.value);
-    if (Number.isNaN(value)) return;
+    const value = parseValue(formState.value);
+    if (value === null) return;
 
     await editAssessmentMutation.mutateAsync({
       assessmentId: editingAssessment.assessment_id,

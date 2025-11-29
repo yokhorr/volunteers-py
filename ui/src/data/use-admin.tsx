@@ -527,6 +527,7 @@ export const useAddAssessment = () => {
   });
 };
 
+// Note: userDayId is not used in the API call but is required for cache invalidation
 export const useEditAssessment = () => {
   const queryClient = useQueryClient();
 
@@ -536,6 +537,7 @@ export const useEditAssessment = () => {
       data,
     }: {
       assessmentId: string | number;
+      /** Required for cache invalidation */
       userDayId: string | number;
       data: EditAssessmentRequest;
     }) => {
@@ -557,6 +559,7 @@ export const useEditAssessment = () => {
   });
 };
 
+// Note: userDayId is not used in the API call but is required for cache invalidation
 export const useDeleteAssessment = () => {
   const queryClient = useQueryClient();
 
@@ -565,6 +568,7 @@ export const useDeleteAssessment = () => {
       assessmentId,
     }: {
       assessmentId: string | number;
+      /** Required for cache invalidation */
       userDayId: string | number;
     }) => {
       const response =
