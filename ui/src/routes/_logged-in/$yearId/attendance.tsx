@@ -1,5 +1,7 @@
+import StarIcon from "@mui/icons-material/Star";
 import {
   Box,
+  IconButton,
   Paper,
   Tab,
   Table,
@@ -9,6 +11,7 @@ import {
   TableHead,
   TableRow,
   Tabs,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import {
@@ -19,6 +22,7 @@ import {
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Attendance, AttendanceItem } from "@/client/types.gen";
+import { AssessmentDialog } from "@/components/AssessmentDialog";
 import {
   AttendanceSelector,
   getAttendanceIcon,
@@ -63,11 +67,44 @@ function RouteComponent() {
   const [selectedAttendance, setSelectedAttendance] =
     useState<Attendance>("yes");
 
+  // Assessment dialog state
+  const [assessmentDialogState, setAssessmentDialogState] = useState<{
+    open: boolean;
+    userDayId: number;
+    volunteerName: string;
+    dayName: string;
+  }>({
+    open: false,
+    userDayId: 0,
+    volunteerName: "",
+    dayName: "",
+  });
+
   const { data: attendanceData, isLoading: attendanceLoading } =
     useAttendance(yearId);
   const saveAttendanceMutation = useSaveAttendance();
 
   const canEditAttendance = !!user;
+
+  const handleOpenAssessmentDialog = (
+    userDayId: number,
+    volunteerName: string,
+    dayName: string,
+  ) => {
+    setAssessmentDialogState({
+      open: true,
+      userDayId,
+      volunteerName,
+      dayName,
+    });
+  };
+
+  const handleCloseAssessmentDialog = () => {
+    setAssessmentDialogState((prev) => ({
+      ...prev,
+      open: false,
+    }));
+  };
 
   // Get unique days from attendance data
   const days = useMemo(() => {
@@ -246,6 +283,7 @@ function RouteComponent() {
                     days={displayedDays}
                     canEditAttendance={canEditAttendance}
                     onAttendanceChange={handleAttendanceChange}
+                    onOpenAssessmentDialog={handleOpenAssessmentDialog}
                     isFirstInPosition={idx === 0}
                     selectedAttendance={selectedAttendance}
                   />
@@ -255,6 +293,14 @@ function RouteComponent() {
           </Table>
         </TableContainer>
       </Box>
+
+      <AssessmentDialog
+        open={assessmentDialogState.open}
+        onClose={handleCloseAssessmentDialog}
+        userDayId={assessmentDialogState.userDayId}
+        volunteerName={assessmentDialogState.volunteerName}
+        dayName={assessmentDialogState.dayName}
+      />
     </Box>
   );
 }
@@ -268,6 +314,11 @@ interface VolunteerRowProps {
     userDayId: number,
     attendance: Attendance,
   ) => Promise<void>;
+  onOpenAssessmentDialog: (
+    userDayId: number,
+    volunteerName: string,
+    dayName: string,
+  ) => void;
   isFirstInPosition: boolean;
   selectedAttendance: Attendance;
 }
@@ -278,6 +329,7 @@ function VolunteerRow({
   days,
   canEditAttendance,
   onAttendanceChange,
+  onOpenAssessmentDialog,
   isFirstInPosition,
   selectedAttendance,
 }: VolunteerRowProps) {
@@ -324,16 +376,6 @@ function VolunteerRow({
             align="center"
             sx={{
               py: 0.5,
-              cursor: canEditAttendance && item ? "pointer" : "default",
-              "&:hover":
-                canEditAttendance && item
-                  ? { backgroundColor: "action.hover" }
-                  : {},
-            }}
-            onClick={() => {
-              if (canEditAttendance && item) {
-                handleAttendanceChange(day.day_id, selectedAttendance);
-              }
             }}
           >
             {item ? (
@@ -345,10 +387,47 @@ function VolunteerRow({
                   justifyContent: "center",
                 }}
               >
-                {getAttendanceIcon(item.attendance)}
-                <Typography variant="body2">
-                  {getAttendanceLabel(item.attendance, t)}
-                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    cursor: canEditAttendance ? "pointer" : "default",
+                    "&:hover": canEditAttendance
+                      ? { backgroundColor: "action.hover" }
+                      : {},
+                    borderRadius: 1,
+                    px: 0.5,
+                  }}
+                  onClick={() => {
+                    if (canEditAttendance) {
+                      handleAttendanceChange(day.day_id, selectedAttendance);
+                    }
+                  }}
+                >
+                  {getAttendanceIcon(item.attendance)}
+                  <Typography variant="body2">
+                    {getAttendanceLabel(item.attendance, t)}
+                  </Typography>
+                </Box>
+                {canEditAttendance && (
+                  <Tooltip title={t("Assessment")}>
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenAssessmentDialog(
+                          item.user_day_id,
+                          volunteer.user_name,
+                          day.day_name,
+                        );
+                      }}
+                      sx={{ p: 0.25 }}
+                    >
+                      <StarIcon fontSize="small" color="action" />
+                    </IconButton>
+                  </Tooltip>
+                )}
               </Box>
             ) : (
               <Typography variant="body2" color="text.secondary">
