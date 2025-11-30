@@ -230,6 +230,7 @@ export type EditUserRequest = {
     telegram_username?: string | null;
     is_admin?: boolean | null;
     telegram_id?: number | null;
+    gender?: string | null;
 };
 
 export type EditYearRequest = {
@@ -287,6 +288,7 @@ export type RegistrationFormItem = {
     phone: string | null;
     email: string | null;
     telegram_username: string | null;
+    gender: string | null;
     itmo_group: string | null;
     comments: string;
     needs_invitation: boolean;
@@ -316,6 +318,7 @@ export type RegistrationRequest = {
     patronymic_ru?: string | null;
     phone?: string | null;
     email?: string | null;
+    gender?: string | null;
 };
 
 export type SaveDayAttendanceRequest = {
@@ -364,6 +367,7 @@ export type UserListItem = {
     email: string | null;
     phone: string | null;
     telegram_username: string | null;
+    gender: string | null;
     is_registered: boolean;
 };
 
@@ -380,6 +384,7 @@ export type UserUpdateRequest = {
     patronymic_ru?: string | null;
     phone?: string | null;
     email?: string | null;
+    gender?: string | null;
 };
 
 export type ValidationError = {
@@ -412,6 +417,7 @@ export type VolunteersApiV1AdminUserSchemasUserResponse = {
     phone: string | null;
     email: string | null;
     telegram_username: string | null;
+    gender: string | null;
     is_admin: boolean;
 };
 
@@ -427,6 +433,7 @@ export type VolunteersApiV1AuthSchemasUserResponse = {
     phone: string | null;
     email: string | null;
     telegram_username: string | null;
+    gender: string | null;
 };
 
 export type AddAssessmentApiV1AdminAssessmentAddPostData = {

@@ -95,6 +95,20 @@ function RouteComponent() {
     ).sort();
   }, [data?.users]);
 
+  const genderOptions = useMemo(() => {
+    if (!data?.users) return [];
+    return Array.from(
+      new Set(
+        data.users
+          .map((user) => user.gender)
+          .filter(
+            (gender): gender is string =>
+              gender !== null && gender !== undefined,
+          ),
+      ),
+    ).sort();
+  }, [data?.users]);
+
   // Define columns with appropriate sizing
   const columns: ColumnDef<UserListItem>[] = useMemo(
     () => [
@@ -113,7 +127,9 @@ function RouteComponent() {
       {
         id: "name_en",
         header: t("Name (English)"),
-        accessorFn: (row) => `${row.first_name_en} ${row.last_name_en}`,
+        accessorFn: (row) => {
+          return `${row.first_name_en} ${row.last_name_en}`;
+        },
         size: 150, // English names are usually shorter
         cell: (info) => (
           <Typography variant="body2" fontSize="0.875rem">
@@ -126,6 +142,8 @@ function RouteComponent() {
         header: t("Group"),
         accessorKey: "itmo_group",
         size: 100, // Group codes are short
+        enableColumnFilter: true,
+        filterFn: "equals",
         cell: (info) => {
           const group = info.getValue() as string | null;
           return group ? (
@@ -145,8 +163,6 @@ function RouteComponent() {
             </Typography>
           );
         },
-        enableColumnFilter: true,
-        filterFn: "equals",
       },
       {
         id: "email",
@@ -203,6 +219,30 @@ function RouteComponent() {
                 {phone}
               </Typography>
             </Link>
+          ) : (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              fontSize="0.875rem"
+            >
+              -
+            </Typography>
+          );
+        },
+      },
+      {
+        id: "gender",
+        header: t("Gender"),
+        accessorKey: "gender",
+        size: 100,
+        enableColumnFilter: true,
+        filterFn: "equals",
+        cell: (info) => {
+          const gender = info.getValue() as string | null;
+          return gender ? (
+            <Typography variant="body2" fontSize="0.875rem">
+              {gender === "male" ? t("Male") : t("Female")}
+            </Typography>
           ) : (
             <Typography
               variant="body2"
@@ -445,6 +485,11 @@ function RouteComponent() {
                   switch (column.id) {
                     case "group":
                       return groupOptions;
+                    case "gender":
+                      return genderOptions.map((g) => ({
+                        value: g,
+                        label: g === "male" ? t("Male") : t("Female"),
+                      }));
                     case "status":
                       return [
                         { value: "true", label: t("Registered") },
@@ -515,6 +560,8 @@ function RouteComponent() {
                   filterValue === "true"
                     ? t("Registered")
                     : t("Not Registered");
+              } else if (filter.id === "gender") {
+                displayValue = filterValue === "male" ? t("Male") : t("Female");
               }
 
               return (

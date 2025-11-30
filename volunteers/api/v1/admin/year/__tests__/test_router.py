@@ -41,6 +41,7 @@ def admin_user() -> User:
         patronymic_ru="Тестович",
         first_name_en="Admin",
         last_name_en="Testov",
+        gender="Male",
         is_admin=True,
         isu_id=1111,
     )
@@ -139,6 +140,7 @@ async def test_get_registration_forms_with_experience(app: AppWithContainer) -> 
         phone="+1234567890",
         email="ivan@example.com",
         telegram_username="ivan_user",
+        gender="Male",
     )
     mock_position = Position(
         id=1, year_id=1, name="Volunteer", can_desire=True, has_halls=False, is_manager=False
@@ -192,6 +194,7 @@ async def test_get_registration_forms_with_experience(app: AppWithContainer) -> 
     assert form_data["phone"] == "+1234567890"
     assert form_data["email"] == "ivan@example.com"
     assert form_data["telegram_username"] == "ivan_user"
+    assert form_data["gender"] == "Male"
     assert form_data["itmo_group"] == "M1234"
     assert form_data["comments"] == "Test comment"
 

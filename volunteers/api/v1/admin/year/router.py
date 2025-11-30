@@ -90,6 +90,7 @@ async def get_users_list(
             email=user.email,
             phone=user.phone,
             telegram_username=user.telegram_username,
+            gender=user.gender,
             is_registered=is_registered,
         )
         for user, is_registered, itmo_group in user_data
@@ -154,6 +155,7 @@ async def get_registration_forms(
                 phone=form.user.phone,
                 email=form.user.email,
                 telegram_username=form.user.telegram_username,
+                gender=form.user.gender,
                 itmo_group=form.itmo_group,
                 comments=form.comments,
                 needs_invitation=form.needs_invitation,

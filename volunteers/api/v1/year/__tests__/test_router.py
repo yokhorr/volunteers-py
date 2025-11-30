@@ -40,6 +40,7 @@ def test_user() -> User:
         is_admin=False,
         isu_id=312656,
         telegram_username="denispotexin",
+        gender="Male",
     )
 
 

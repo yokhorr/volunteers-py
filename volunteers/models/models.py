@@ -45,6 +45,7 @@ class User(Base, TimestampMixin):
     phone: Mapped[str | None] = mapped_column(String, nullable=True)
     email: Mapped[str | None] = mapped_column(String, nullable=True)
     telegram_username: Mapped[str | None] = mapped_column(String, nullable=True)
+    gender: Mapped[str | None] = mapped_column(String, nullable=True)
 
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
 

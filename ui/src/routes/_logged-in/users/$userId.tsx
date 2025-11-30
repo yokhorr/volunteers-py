@@ -6,6 +6,7 @@ import {
   CircularProgress,
   Container,
   FormControlLabel,
+  MenuItem,
   Paper,
   TextField,
   Typography,
@@ -38,6 +39,7 @@ const validationSchema = yup.object({
   email: yup.string().email("Invalid email format").nullable(),
   telegram_username: yup.string().nullable(),
   telegram_id: yup.number().nullable(),
+  gender: yup.string().oneOf(["male", "female"]).nullable(),
   is_admin: yup.boolean(),
 });
 
@@ -60,6 +62,7 @@ function RouteComponent() {
       email: "",
       telegram_username: "",
       telegram_id: null as number | null,
+      gender: "" as "male" | "female" | "",
       is_admin: false,
     },
     validationSchema,
@@ -78,6 +81,7 @@ function RouteComponent() {
             email: values.email || null,
             telegram_username: values.telegram_username || null,
             telegram_id: values.telegram_id || null,
+            gender: values.gender || null,
             is_admin: values.is_admin || null,
           },
         });
@@ -131,7 +135,7 @@ function RouteComponent() {
             fullWidth
             label={t("First Name (RU)")}
             name="first_name_ru"
-            value={formik.values.first_name_ru}
+            value={formik.values.first_name_ru || ""}
             onChange={formik.handleChange}
             error={
               formik.touched.first_name_ru &&
@@ -148,7 +152,7 @@ function RouteComponent() {
             fullWidth
             label={t("Last Name (RU)")}
             name="last_name_ru"
-            value={formik.values.last_name_ru}
+            value={formik.values.last_name_ru || ""}
             onChange={formik.handleChange}
             error={
               formik.touched.last_name_ru && Boolean(formik.errors.last_name_ru)
@@ -164,7 +168,7 @@ function RouteComponent() {
             fullWidth
             label={t("Patronymic (RU)")}
             name="patronymic_ru"
-            value={formik.values.patronymic_ru}
+            value={formik.values.patronymic_ru || ""}
             onChange={formik.handleChange}
             error={
               formik.touched.patronymic_ru &&
@@ -180,7 +184,7 @@ function RouteComponent() {
             fullWidth
             label={t("First Name (EN)")}
             name="first_name_en"
-            value={formik.values.first_name_en}
+            value={formik.values.first_name_en || ""}
             onChange={formik.handleChange}
             error={
               formik.touched.first_name_en &&
@@ -197,7 +201,7 @@ function RouteComponent() {
             fullWidth
             label={t("Last Name (EN)")}
             name="last_name_en"
-            value={formik.values.last_name_en}
+            value={formik.values.last_name_en || ""}
             onChange={formik.handleChange}
             error={
               formik.touched.last_name_en && Boolean(formik.errors.last_name_en)
@@ -230,7 +234,7 @@ function RouteComponent() {
             fullWidth
             label={t("Phone")}
             name="phone"
-            value={formik.values.phone}
+            value={formik.values.phone || ""}
             onChange={formik.handleChange}
             error={formik.touched.phone && Boolean(formik.errors.phone)}
             helperText={formik.touched.phone && formik.errors.phone}
@@ -242,7 +246,7 @@ function RouteComponent() {
             label={t("Email")}
             name="email"
             type="email"
-            value={formik.values.email}
+            value={formik.values.email || ""}
             onChange={formik.handleChange}
             error={formik.touched.email && Boolean(formik.errors.email)}
             helperText={formik.touched.email && formik.errors.email}
@@ -250,10 +254,23 @@ function RouteComponent() {
           />
 
           <TextField
+            select
+            fullWidth
+            label={t("Gender")}
+            name="gender"
+            value={formik.values.gender || ""}
+            onChange={formik.handleChange}
+            sx={{ mb: 2 }}
+          >
+            <MenuItem value="male">{t("Male")}</MenuItem>
+            <MenuItem value="female">{t("Female")}</MenuItem>
+          </TextField>
+
+          <TextField
             fullWidth
             label={t("Telegram Username")}
             name="telegram_username"
-            value={formik.values.telegram_username}
+            value={formik.values.telegram_username || ""}
             onChange={formik.handleChange}
             error={
               formik.touched.telegram_username &&

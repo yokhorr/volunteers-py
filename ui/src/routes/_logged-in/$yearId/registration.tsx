@@ -52,6 +52,7 @@ function RouteComponent() {
       patronymic_ru: user?.patronymic_ru ?? "",
       phone: user?.phone ?? "",
       email: user?.email ?? "",
+      gender: user?.gender ?? "",
     },
     enableReinitialize: true,
     validationSchema: Yup.object({
@@ -71,6 +72,7 @@ function RouteComponent() {
       email: Yup.string()
         .email(t("Invalid email format"))
         .required(t("Email is required")),
+      gender: Yup.string().required(t("Gender is required")),
     }),
     onSubmit: async (values) => {
       try {
@@ -91,6 +93,7 @@ function RouteComponent() {
             patronymic_ru: values.patronymic_ru,
             phone: values.phone,
             email: values.email,
+            gender: values.gender,
           },
         });
         // User data will be updated via the mutation's cache invalidation
@@ -248,8 +251,35 @@ function RouteComponent() {
             disabled={!year.open_for_registration}
             error={formik.touched.email && Boolean(formik.errors.email)}
             helperText={formik.touched.email && formik.errors.email}
-            sx={{ mb: 3 }}
+            sx={{ mb: 2 }}
           />
+
+          <FormControl
+            fullWidth
+            sx={{ mb: 3 }}
+            error={formik.touched.gender && Boolean(formik.errors.gender)}
+            disabled={!year.open_for_registration}
+          >
+            <InputLabel>{t("Gender")}</InputLabel>
+            <Select
+              name="gender"
+              value={formik.values.gender}
+              onChange={formik.handleChange}
+              label={t("Gender")}
+            >
+              <MenuItem value="male">{t("Male")}</MenuItem>
+              <MenuItem value="female">{t("Female")}</MenuItem>
+            </Select>
+            {formik.touched.gender && formik.errors.gender && (
+              <Typography
+                variant="caption"
+                color="error"
+                sx={{ mt: 0.5, ml: 2 }}
+              >
+                {formik.errors.gender}
+              </Typography>
+            )}
+          </FormControl>
 
           <Divider sx={{ my: 3 }} />
 

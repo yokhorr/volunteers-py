@@ -331,6 +331,7 @@ export const useEditUser = () => {
         telegram_username?: string | null;
         is_admin?: boolean | null;
         telegram_id?: number | null;
+        gender?: string | null;
       };
     }) => {
       const response = await editUserApiV1AdminUserUserIdEditPost({

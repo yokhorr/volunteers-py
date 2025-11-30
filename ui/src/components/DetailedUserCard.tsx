@@ -38,6 +38,7 @@ export function DetailedUserCard({
     user.telegram_username ||
     user.desired_positions.length > 0 ||
     user.comments ||
+    user.gender ||
     user.needs_invitation ||
     (user.experience && user.experience.length > 0);
 
@@ -101,6 +102,12 @@ export function DetailedUserCard({
             >
               @{user.telegram_username}
             </Link>
+          </Typography>
+        )}
+        {user.gender && (
+          <Typography variant="body2" sx={{ mb: 0.25, fontSize: "0.75rem" }}>
+            <strong>{t("Gender:")}</strong>{" "}
+            {user.gender === "male" ? t("Male") : t("Female")}
           </Typography>
         )}
 

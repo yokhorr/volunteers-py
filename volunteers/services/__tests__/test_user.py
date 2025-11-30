@@ -44,6 +44,7 @@ async def test_get_user_by_telegram_id_found(user_service: UserService) -> None:
         phone="+1234567890",
         email="test@example.com",
         telegram_username="testuser",
+        gender="Male",
         is_admin=False,
     )
     mock_result: MagicMock = MagicMock()
@@ -82,6 +83,7 @@ async def test_create_user(user_service: UserService) -> None:
         phone="+1234567890",
         email="denis@example.com",
         telegram_username="denis_potekhin",
+        gender="Male",
         is_admin=True,
     )
 
@@ -95,5 +97,6 @@ async def test_create_user(user_service: UserService) -> None:
         assert result.telegram_id == user_in.telegram_id
         assert result.first_name_ru == user_in.first_name_ru
         assert result.is_admin == user_in.is_admin
+        assert result.gender == user_in.gender
         mock_session.add.assert_called_once_with(result)
         mock_session.commit.assert_awaited_once()

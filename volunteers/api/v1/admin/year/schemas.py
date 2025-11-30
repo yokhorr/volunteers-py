@@ -20,8 +20,8 @@ class EditYearRequest(BaseModel):
 
 class UserListItem(BaseModel):
     id: int
-    first_name_ru: str
-    last_name_ru: str
+    first_name_ru: str | None
+    last_name_ru: str | None
     patronymic_ru: str | None
     first_name_en: str
     last_name_en: str
@@ -29,6 +29,7 @@ class UserListItem(BaseModel):
     email: str | None
     phone: str | None
     telegram_username: str | None
+    gender: str | None
     is_registered: bool
 
 
@@ -55,6 +56,7 @@ class RegistrationFormItem(BaseModel):
     phone: str | None
     email: str | None
     telegram_username: str | None
+    gender: str | None
     itmo_group: str | None
     comments: str
     needs_invitation: bool

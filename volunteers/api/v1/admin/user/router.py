@@ -39,6 +39,7 @@ async def get_all_users(
             phone=user.phone,
             email=user.email,
             telegram_username=user.telegram_username,
+            gender=user.gender,
             is_admin=user.is_admin,
         )
         for user in users
