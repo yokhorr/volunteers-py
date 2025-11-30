@@ -8,13 +8,23 @@ from loguru import logger
 from prometheus_client import Counter, make_asgi_app
 
 from volunteers.api.router import router as api_router
-from volunteers.core.di import Container
+from volunteers.core.di import container
 
 logger.remove()
 logger.add(sys.stdout, level="DEBUG")
 
-container = Container()
-container.wire()
+# Wire the container with the necessary packages
+container.wire(
+    packages=[
+        "volunteers.services",
+        "volunteers.models",
+        "volunteers.schemas",
+        "volunteers.core",
+        "volunteers.auth",
+        "volunteers.api",
+        "volunteers.bot",
+    ]
+)
 
 
 @asynccontextmanager

@@ -180,7 +180,7 @@ class Assessment(Base, TimestampMixin):
     user_day: Mapped[UserDay] = relationship(back_populates="assessments")
 
     comment: Mapped[str] = mapped_column(String)
-    value: Mapped[float] = mapped_column(Double)
+    value: Mapped[int] = mapped_column(Integer)
 
 
 class LegacyUser(Base):

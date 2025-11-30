@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from datetime import UTC
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
@@ -121,6 +122,7 @@ async def test_edit_year_success(app: AppWithContainer, edit_year_request: dict[
 @pytest.mark.asyncio
 async def test_get_registration_forms_with_experience(app: AppWithContainer) -> None:
     """Test that get_registration_forms includes experience data for each user."""
+    from datetime import datetime
 
     from volunteers.models import ApplicationForm, Position, User
 
@@ -138,10 +140,19 @@ async def test_get_registration_forms_with_experience(app: AppWithContainer) -> 
         email="ivan@example.com",
         telegram_username="ivan_user",
     )
-    mock_position = Position(id=1, year_id=1, name="Volunteer", can_desire=True, has_halls=False)
+    mock_position = Position(
+        id=1, year_id=1, name="Volunteer", can_desire=True, has_halls=False, is_manager=False
+    )
 
     mock_form = ApplicationForm(
-        id=1, year_id=1, user_id=1, itmo_group="M1234", comments="Test comment"
+        id=1,
+        year_id=1,
+        user_id=1,
+        itmo_group="M1234",
+        comments="Test comment",
+        needs_invitation=False,
+        created_at=datetime(2023, 1, 1, tzinfo=UTC),
+        updated_at=datetime(2023, 1, 2, tzinfo=UTC),
     )
     mock_form.user = mock_user
     mock_form.desired_positions = {mock_position}

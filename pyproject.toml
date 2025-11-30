@@ -103,8 +103,10 @@ inline-quotes = "double"
 [tool.pytest.ini_options]
 addopts = "-ra -q --strict-markers --cov=volunteers --cov-report=term-missing"
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 filterwarnings = ["error"]
 markers = [
   "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+  "xdist_group: marks tests for pytest-xdist grouping",
 ]
 testpaths = ["."]

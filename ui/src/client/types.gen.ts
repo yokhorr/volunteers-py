@@ -121,6 +121,12 @@ export type AssignmentsResponse = {
 
 export type Attendance = 'yes' | 'no' | 'late' | 'sick' | 'unknown';
 
+export type AssessmentInAttendance = {
+    assessment_id: number;
+    comment: string;
+    value: number;
+};
+
 export type AttendanceItem = {
     user_day_id: number;
     day_id: number;
@@ -133,6 +139,7 @@ export type AttendanceItem = {
     hall_id: number | null;
     hall_name: string | null;
     attendance: Attendance;
+    assessments: Array<AssessmentInAttendance>;
 };
 
 export type CopyAssignmentsRequest = {

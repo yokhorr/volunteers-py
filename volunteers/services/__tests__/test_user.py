@@ -17,7 +17,9 @@ def mock_db() -> MagicMock:
 
 @pytest.fixture
 def user_service(mock_db: MagicMock) -> UserService:
-    return UserService(db=mock_db)
+    service = UserService()
+    service.db = mock_db
+    return service
 
 
 def make_async_cm(mock_session: Any) -> Any:

@@ -496,6 +496,7 @@ class YearService(BaseService):
         async with self.session_scope() as session:
             session.add(created_assessment)
             await session.commit()
+            await session.refresh(created_assessment)
         return created_assessment
 
     async def edit_assessment_by_assessment_id(

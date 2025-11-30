@@ -1,5 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  addAssessmentApiV1AdminAssessmentAddPost,
+  deleteAssessmentApiV1AdminAssessmentAssessmentIdDelete,
+  editAssessmentApiV1AdminAssessmentAssessmentIdEditPost,
   getAllAttendanceApiV1AttendanceYearIdAllGet,
   getDayAssignmentsApiV1YearYearIdDaysDayIdAssignmentsGet,
   getFormYearApiV1YearYearIdGet,
@@ -146,6 +149,67 @@ export const useSaveAttendance = () => {
     onSuccess: () => {
       // Invalidate all attendance queries - we don't know the year_id from the request
       // so we invalidate all year attendance queries
+      queryClient.invalidateQueries({ queryKey: ["year"] });
+    },
+  });
+};
+
+// Assessment hooks
+export const useAddAssessment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      user_day_id: number;
+      comment: string;
+      value: number;
+    }) => {
+      await addAssessmentApiV1AdminAssessmentAddPost({
+        body: data,
+        throwOnError: true,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["year"] });
+    },
+  });
+};
+
+export const useEditAssessment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      assessment_id: number;
+      comment?: string | null;
+      value?: number | null;
+    }) => {
+      await editAssessmentApiV1AdminAssessmentAssessmentIdEditPost({
+        path: { assessment_id: data.assessment_id },
+        body: {
+          comment: data.comment,
+          value: data.value,
+        },
+        throwOnError: true,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["year"] });
+    },
+  });
+};
+
+export const useDeleteAssessment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (assessmentId: number) => {
+      await deleteAssessmentApiV1AdminAssessmentAssessmentIdDelete({
+        path: { assessment_id: assessmentId },
+        throwOnError: true,
+      });
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["year"] });
     },
   });

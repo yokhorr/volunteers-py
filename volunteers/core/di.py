@@ -12,18 +12,7 @@ from volunteers.services.year import YearService
 
 
 class Container(containers.DeclarativeContainer):
-    wiring_config = containers.WiringConfiguration(
-        packages=[
-            "volunteers.services",
-            "volunteers.models",
-            "volunteers.schemas",
-            "volunteers.core",
-            "volunteers.auth",
-            "volunteers.api",
-            "volunteers.bot",
-        ],
-        warn_unresolved=True,  # type: ignore[call-arg]
-    )
+    # Remove automatic wiring - will be done manually in app.py
     config = providers.Factory(Config)
     db = providers.Singleton(create_engine, config.provided.database.url)
     # logger = providers.Singleton(Logger)
@@ -34,3 +23,7 @@ class Container(containers.DeclarativeContainer):
     user_service = providers.Singleton(UserService)
     year_service = providers.Singleton(YearService, notifier=notifier)
     legacy_user_service = providers.Singleton(LegacyUserService)
+
+
+# Create a global container instance (not wired yet)
+container = Container()

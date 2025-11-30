@@ -6,6 +6,8 @@ from loguru import logger
 from sqlalchemy import select
 
 from volunteers.auth.deps import with_admin
+
+# Import the global container from di module instead of app
 from volunteers.core.di import Container
 from volunteers.models import Assessment, User
 from volunteers.schemas.assessment import AssessmentEditIn, AssessmentIn

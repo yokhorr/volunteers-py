@@ -50,7 +50,7 @@ def test_year() -> Year:
 
 @pytest.fixture
 def test_day() -> Day:
-    return Day(id=1, year_id=1, name="Day 1", information="Test day")
+    return Day(id=1, year_id=1, name="Day 1", information="Test day", assignment_published=True)
 
 
 @pytest.fixture
@@ -157,7 +157,7 @@ async def test_get_day_assignments_success(
     assert assignment["telegram"] == "denispotexin"
     assert assignment["position"] == "Test Position"
     assert assignment["hall"] == "Test Hall"
-    assert assignment["attendance"] == "yes"
+    # attendance is not included in the response (commented out in schema)
 
 
 @pytest.mark.asyncio
