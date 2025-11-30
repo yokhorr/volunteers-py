@@ -75,6 +75,7 @@ async def get_user_by_id(
         email=user.email,
         telegram_username=user.telegram_username,
         is_admin=user.is_admin,
+        gender=user.gender,
     )
 
 
@@ -105,4 +106,5 @@ async def edit_user(
         email=updated_user.email,
         telegram_username=updated_user.telegram_username,
         is_admin=updated_user.is_admin,
+        gender=updated_user.gender,
     )
