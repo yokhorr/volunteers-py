@@ -10,6 +10,7 @@ from volunteers.api.v1.year import router as year_router
 from volunteers.core.di import Container
 from volunteers.models import ApplicationForm, Day, Hall, Position, User, UserDay, Year
 from volunteers.models.attendance import Attendance
+from volunteers.models.gender import Gender
 
 if TYPE_CHECKING:
     from dependency_injector.containers import DeclarativeContainer
@@ -40,7 +41,7 @@ def test_user() -> User:
         is_admin=False,
         isu_id=312656,
         telegram_username="denispotexin",
-        gender="Male",
+        gender=Gender.MALE,
     )
 
 

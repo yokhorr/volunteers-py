@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+from volunteers.models.gender import Gender
 from volunteers.schemas.base import BaseErrorResponse, BaseSuccessResponse
 
 
@@ -29,7 +30,7 @@ class RegistrationRequest(TelegramLoginRequest):
     patronymic_ru: str | None = None
     phone: str | None = None
     email: str | None = None
-    gender: str | None = None
+    gender: Gender | None = None
 
 
 class UserUpdateRequest(BaseModel):
@@ -41,7 +42,7 @@ class UserUpdateRequest(BaseModel):
     patronymic_ru: str | None = None
     phone: str | None = None
     email: str | None = None
-    gender: str | None = None
+    gender: Gender | None = None
 
 
 class RefreshTokenRequest(BaseModel):
@@ -72,4 +73,4 @@ class UserResponse(BaseModel):
     phone: str | None
     email: str | None
     telegram_username: str | None
-    gender: str | None
+    gender: Gender | None

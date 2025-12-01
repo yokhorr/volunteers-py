@@ -34,6 +34,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAllUsers } from "@/data/use-admin";
 import { downloadFile } from "@/utils/download";
+import { getGenderLabel } from "@/utils/gender";
 import { shouldBeAdmin } from "@/utils/should-be-logged-in";
 
 export const Route = createFileRoute("/_logged-in/users/")({
@@ -193,17 +194,9 @@ function RouteComponent() {
           size: 100,
           cell: (info) => {
             const gender = info.getValue() as string | null;
-            return gender ? (
+            return (
               <Typography variant="body2" fontSize="0.875rem">
-                {gender === "male" ? t("Male") : t("Female")}
-              </Typography>
-            ) : (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                fontSize="0.875rem"
-              >
-                -
+                {getGenderLabel(gender, t)}
               </Typography>
             );
           },

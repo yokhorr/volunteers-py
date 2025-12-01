@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 from volunteers.models.attendance import Attendance
+from volunteers.models.gender import Gender
 from volunteers.schemas.base import BaseSuccessResponse
 from volunteers.schemas.position import PositionOut
 
@@ -29,7 +30,7 @@ class UserListItem(BaseModel):
     email: str | None
     phone: str | None
     telegram_username: str | None
-    gender: str | None
+    gender: Gender | None
     is_registered: bool
 
 
@@ -56,7 +57,7 @@ class RegistrationFormItem(BaseModel):
     phone: str | None
     email: str | None
     telegram_username: str | None
-    gender: str | None
+    gender: Gender | None
     itmo_group: str | None
     comments: str
     needs_invitation: bool

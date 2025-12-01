@@ -23,6 +23,7 @@ import { useTranslation } from "react-i18next";
 import * as Yup from "yup";
 import { useSaveRegistration } from "@/data/use-year";
 import { authStore } from "@/store/auth";
+import { GENDER_OPTIONS, getGenderLabel } from "@/utils/gender";
 
 export const Route = createFileRoute("/_logged-in/$yearId/registration")({
   component: observer(RouteComponent),
@@ -267,8 +268,11 @@ function RouteComponent() {
               onChange={formik.handleChange}
               label={t("Gender")}
             >
-              <MenuItem value="male">{t("Male")}</MenuItem>
-              <MenuItem value="female">{t("Female")}</MenuItem>
+              {GENDER_OPTIONS.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {getGenderLabel(option, t)}
+                </MenuItem>
+              ))}
             </Select>
             {formik.touched.gender && formik.errors.gender && (
               <Typography

@@ -41,6 +41,7 @@ import { useTranslation } from "react-i18next";
 import type { UserListItem } from "@/client/types.gen";
 import { DetailedUserCard } from "@/components/DetailedUserCard";
 import { useRegistrationForms, useUsersList } from "@/data/use-admin";
+import { getGenderLabel } from "@/utils/gender";
 import { shouldBeAdmin } from "@/utils/should-be-logged-in";
 
 export const Route = createFileRoute("/_logged-in/$yearId/contacts")({
@@ -239,17 +240,9 @@ function RouteComponent() {
         filterFn: "equals",
         cell: (info) => {
           const gender = info.getValue() as string | null;
-          return gender ? (
+          return (
             <Typography variant="body2" fontSize="0.875rem">
-              {gender === "male" ? t("Male") : t("Female")}
-            </Typography>
-          ) : (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              fontSize="0.875rem"
-            >
-              -
+              {getGenderLabel(gender, t)}
             </Typography>
           );
         },

@@ -14,6 +14,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .attendance import Attendance
 from .base import Base, TimestampMixin
+from .gender import Gender
 
 
 class Year(Base, TimestampMixin):
@@ -45,7 +46,10 @@ class User(Base, TimestampMixin):
     phone: Mapped[str | None] = mapped_column(String, nullable=True)
     email: Mapped[str | None] = mapped_column(String, nullable=True)
     telegram_username: Mapped[str | None] = mapped_column(String, nullable=True)
-    gender: Mapped[str | None] = mapped_column(String, nullable=True)
+    gender: Mapped[Gender | None] = mapped_column(
+        Enum(Gender, name="gender_enum", values_callable=lambda x: [e.value for e in x]),
+        nullable=True,
+    )
 
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
 
