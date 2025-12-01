@@ -15,6 +15,7 @@ logger.add(sys.stdout, level="DEBUG")
 
 # Wire the container with the necessary packages
 container.wire(
+    modules=[__name__, "volunteers.api.v1.admin.assessment.router"],
     packages=[
         "volunteers.services",
         "volunteers.models",
@@ -23,7 +24,7 @@ container.wire(
         "volunteers.auth",
         "volunteers.api",
         "volunteers.bot",
-    ]
+    ],
 )
 
 

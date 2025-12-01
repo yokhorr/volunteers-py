@@ -5,6 +5,7 @@ from volunteers.bot.notify import Notifier
 from volunteers.core.config import Config
 from volunteers.core.db import create_engine
 from volunteers.core.tg import get_bot
+from volunteers.services.assessment import AssessmentService
 from volunteers.services.i18n import I18nService
 from volunteers.services.legacy_user import LegacyUserService
 from volunteers.services.user import UserService
@@ -23,6 +24,7 @@ class Container(containers.DeclarativeContainer):
     user_service = providers.Singleton(UserService)
     year_service = providers.Singleton(YearService, notifier=notifier)
     legacy_user_service = providers.Singleton(LegacyUserService)
+    assessment_service = providers.Singleton(AssessmentService)
 
 
 # Create a global container instance (not wired yet)
