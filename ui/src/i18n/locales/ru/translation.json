@@ -240,5 +240,7 @@
   "Delete all current assignments and copy all from source day": "Удалить все текущие назначения и скопировать все из исходного дня",
   "Failed to copy assignments. Please try again.": "Не удалось скопировать назначения. Попробуйте еще раз.",
   "Copying...": "Копирование...",
-  "Copy Assignments": "Копировать назначения"
+  "Copy Assignments": "Копировать назначения",
+  "Export to CSV": "Экспортировать в CSV",
+  "Export to ZIP": "Экспортировать в ZIP"
 }

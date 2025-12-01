@@ -296,7 +296,7 @@ function AssignmentsTable({ assignments }: AssignmentsTableProps) {
                   >
                     <InputLabel>{column.columnDef.header as string}</InputLabel>
                     <Select
-                      value={(column.getFilterValue() as string) || ""}
+                      value={String(column.getFilterValue() ?? "")}
                       onChange={(e) =>
                         column.setFilterValue(e.target.value || undefined)
                       }

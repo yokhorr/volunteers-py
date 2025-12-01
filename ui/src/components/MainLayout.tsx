@@ -360,7 +360,7 @@ export default observer(function MainLayout({
           <Select
             labelId={yearSelectorId}
             id={yearSelectorId}
-            value={selectedYear}
+            value={selectedYear ?? ""}
             onChange={handleYearChange}
             label={t("Year")}
           >

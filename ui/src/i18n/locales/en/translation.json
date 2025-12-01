@@ -226,5 +226,7 @@
   "Delete all current assignments and copy all from source day": "Delete all current assignments and copy all from source day",
   "Failed to copy assignments. Please try again.": "Failed to copy assignments. Please try again.",
   "Copying...": "Copying...",
-  "Copy Assignments": "Copy Assignments"
+  "Copy Assignments": "Copy Assignments",
+  "Export to CSV": "Export to CSV",
+  "Export to ZIP": "Export to ZIP"
 }

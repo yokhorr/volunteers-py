@@ -1,7 +1,9 @@
+from datetime import UTC, datetime
 from typing import Annotated
 
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends, Path, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
+from fastapi.responses import StreamingResponse
 from loguru import logger
 
 from volunteers.auth.deps import with_admin
@@ -9,6 +11,7 @@ from volunteers.core.di import Container
 from volunteers.models import User
 from volunteers.schemas.position import PositionOut
 from volunteers.schemas.year import YearEditIn, YearIn
+from volunteers.services.export import ExportService
 from volunteers.services.user import UserService
 from volunteers.services.year import YearService
 
@@ -177,3 +180,35 @@ async def get_registration_forms(
         )
 
     return RegistrationFormsResponse(forms=form_items)
+
+
+@router.get(
+    "/{year_id}/export-csv",
+    description="Export all year data to ZIP archive with multiple CSV files",
+)
+@inject
+async def export_year_csv(
+    year_id: Annotated[int, Path(title="The ID of the year")],
+    _: Annotated[User, Depends(with_admin)],
+    export_service: Annotated[ExportService, Depends(Provide[Container.export_service])],
+    year_service: Annotated[YearService, Depends(Provide[Container.year_service])],
+) -> StreamingResponse:
+    """Export all year data to ZIP archive with multiple CSV files."""
+    # Get year name for filename
+    year = await year_service.get_year_by_year_id(year_id)
+    if not year:
+        raise HTTPException(status_code=404, detail="Year not found")
+
+    zip_content = await export_service.export_year_data(year_id)
+
+    # Create filename with year name and timestamp
+    timestamp = datetime.now(tz=UTC).strftime("%Y%m%d_%H%M%S")
+    filename = f"year_{year.year_name.replace(' ', '_')}_{timestamp}.zip"
+
+    logger.info(f"Exporting year {year_id} data to ZIP")
+
+    return StreamingResponse(
+        iter([zip_content]),
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )

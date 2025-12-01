@@ -1,5 +1,6 @@
 import AddIcon from "@mui/icons-material/Add";
 import BadgeIcon from "@mui/icons-material/Badge";
+import DownloadIcon from "@mui/icons-material/Download";
 import EditIcon from "@mui/icons-material/Edit";
 import HomeIcon from "@mui/icons-material/Home";
 import SaveIcon from "@mui/icons-material/Save";
@@ -19,6 +20,7 @@ import {
   ListItem,
   ListItemText,
   Paper,
+  Snackbar,
   Switch,
   TextField,
   Tooltip,
@@ -41,6 +43,7 @@ import {
   useYearPositions,
   useYears,
 } from "@/data";
+import { downloadFile } from "@/utils/download";
 import { shouldBeAdmin } from "@/utils/should-be-logged-in";
 
 export const Route = createFileRoute("/_logged-in/$yearId/settings")({
@@ -69,6 +72,7 @@ function RouteComponent() {
   const [editPositionHasHalls, setEditPositionHasHalls] = useState(false);
   const [newPositionIsManager, setNewPositionIsManager] = useState(false);
   const [editPositionIsManager, setEditPositionIsManager] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   // Hall management state
   const [isAddHallDialogOpen, setIsAddHallDialogOpen] = useState(false);
@@ -384,9 +388,33 @@ function RouteComponent() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        {t("Year Settings")}
-      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography variant="h4" component="h1">
+          {t("Year Settings")}
+        </Typography>
+        <Button
+          variant="outlined"
+          startIcon={<DownloadIcon />}
+          onClick={async () => {
+            try {
+              await downloadFile(`/api/v1/admin/year/${yearId}/export-csv`);
+            } catch (error) {
+              setExportError(
+                error instanceof Error ? error.message : "Export failed",
+              );
+            }
+          }}
+        >
+          {t("Export to ZIP")}
+        </Button>
+      </Box>
 
       {/* Year Settings Form */}
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -1141,6 +1169,14 @@ function RouteComponent() {
           </DialogActions>
         </form>
       </Dialog>
+
+      {/* Export error notification */}
+      <Snackbar
+        open={!!exportError}
+        autoHideDuration={6000}
+        onClose={() => setExportError(null)}
+        message={exportError}
+      />
     </Box>
   );
 }
