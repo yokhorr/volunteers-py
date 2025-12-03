@@ -31,7 +31,9 @@ def mock_db() -> MagicMock:
 @pytest.fixture
 def year_service(mock_db: MagicMock) -> YearService:
     mock_notifier = MagicMock()
-    service = YearService(notifier=mock_notifier)
+    mock_socketio = MagicMock()
+    mock_socketio.emit = AsyncMock()
+    service = YearService(notifier=mock_notifier, socketio_server=mock_socketio)
     service.db = mock_db
     return service
 

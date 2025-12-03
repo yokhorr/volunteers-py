@@ -66,6 +66,7 @@ import {
   useYearHalls,
   useYearPositions,
 } from "@/data/use-admin";
+import { useAssignmentUpdates } from "@/hooks/useAssignmentUpdates";
 import { useDayAssignmentManager } from "@/hooks/useDayAssignmentManager";
 
 // Custom collision detection that prioritizes the drawer
@@ -794,6 +795,9 @@ function RouteComponent() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
+  // Subscribe to real-time assignment updates
+  useAssignmentUpdates(Number.parseInt(dayId, 10), Number.parseInt(yearId, 10));
+
   const {
     data: registrationFormsData,
     isLoading: formsLoading,
@@ -1242,7 +1246,7 @@ function RouteComponent() {
       {/* Existing Assignments Summary */}
       {assignmentsData && assignmentsData.assignments.length > 0 && (
         <Alert severity="success" sx={{ mb: 2 }}>
-          {t("Current assignments:")} {assignmentsData.assignments.length}{" "}
+          {t("Current assignments")}: {assignmentsData.assignments.length}{" "}
           {t("volunteers assigned to positions")}
         </Alert>
       )}

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+import socketio  # type: ignore[import-untyped]
 from sqlalchemy import and_, delete, select
 from sqlalchemy.orm import selectinload
 
@@ -24,6 +25,7 @@ from volunteers.schemas.hall import HallEditIn, HallIn
 from volunteers.schemas.position import PositionEditIn, PositionIn
 from volunteers.schemas.user_day import UserDayEditIn, UserDayIn
 from volunteers.schemas.year import YearEditIn, YearIn
+from volunteers.sockets.assignments import broadcast_assignment_update
 
 from .base import BaseService
 from .errors import DomainError
@@ -70,8 +72,13 @@ class ManagerForYear:
 
 
 class YearService(BaseService):
-    def __init__(self, notifier: Notifier) -> None:
+    def __init__(
+        self,
+        notifier: Notifier,
+        socketio_server: socketio.AsyncServer,
+    ) -> None:
         self.notifier = notifier
+        self.socketio_server = socketio_server
         super().__init__()
 
     async def get_years(self) -> list[Year]:
@@ -287,6 +294,8 @@ class YearService(BaseService):
             if not updated_day:
                 raise DayNotFound()
 
+            old_assignment_published = updated_day.assignment_published
+
             if (name := day_edit_in.name) is not None:
                 updated_day.name = name
             if (information := day_edit_in.information) is not None:
@@ -299,6 +308,18 @@ class YearService(BaseService):
                 updated_day.assignment_published = assignment_published
 
             await session.commit()
+
+            # Broadcast if assignment_published status changed
+            if (
+                day_edit_in.assignment_published is not None
+                and old_assignment_published != day_edit_in.assignment_published
+            ):
+                await broadcast_assignment_update(
+                    self.socketio_server,
+                    day_id,
+                    "published" if day_edit_in.assignment_published else "unpublished",
+                    None,
+                )
 
     async def add_user_day(self, user_day_in: UserDayIn, author: User) -> UserDay:
         created_user_day = UserDay(
@@ -319,6 +340,14 @@ class YearService(BaseService):
             hall = await created_user_day.awaitable_attrs.hall
             await self.notifier.notify(
                 f"[{day.name}] {user.first_name_ru} {user.last_name_ru} (@{user.telegram_username}) \n(unassigned) -> {position.name} {hall.name if hall else ''}\n(by @{author.telegram_username})"
+            )
+
+            # Broadcast assignment update via WebSocket
+            await broadcast_assignment_update(
+                self.socketio_server,
+                user_day_in.day_id,
+                "created",
+                {"user_day_id": created_user_day.id},
             )
         return created_user_day
 
@@ -366,6 +395,14 @@ class YearService(BaseService):
                 f"[{day.name}] {user.first_name_ru} {user.last_name_ru} (@{user.telegram_username})\n{old_position.name} {old_hall.name if old_hall else ''} -> {new_position.name} {new_hall.name if new_hall else ''}\n(by @{author.telegram_username})"
             )
 
+            # Broadcast assignment update via WebSocket
+            await broadcast_assignment_update(
+                self.socketio_server,
+                day.id,
+                "updated",
+                {"user_day_id": updated_user_day.id},
+            )
+
     async def delete_user_day_by_user_day_id(self, user_day_id: int, author: User) -> None:
         """Delete a user day by its ID."""
         async with self.session_scope() as session:
@@ -375,6 +412,8 @@ class YearService(BaseService):
             user_day = existing_user_day.scalar_one_or_none()
             if not user_day:
                 raise UserDayNotFound()
+
+            day_id = user_day.day_id
 
             await session.delete(user_day)
             await session.commit()
@@ -386,6 +425,14 @@ class YearService(BaseService):
             hall = await user_day.awaitable_attrs.hall
             await self.notifier.notify(
                 f"[{day.name}] {user.first_name_ru} {user.last_name_ru} (@{user.telegram_username})\n{position.name} {hall.name if hall else ''} -> (unassigned)\n(by @{author.telegram_username})"
+            )
+
+            # Broadcast assignment update via WebSocket
+            await broadcast_assignment_update(
+                self.socketio_server,
+                day_id,
+                "deleted",
+                {"user_day_id": user_day_id},
             )
 
     async def copy_assignments_from_day(
@@ -485,6 +532,16 @@ class YearService(BaseService):
                 copied_count += 1
 
             await session.commit()
+
+            # Broadcast bulk assignment update via WebSocket
+            if copied_count > 0:
+                await broadcast_assignment_update(
+                    self.socketio_server,
+                    target_day_id,
+                    "bulk_created",
+                    {"count": copied_count},
+                )
+
             return copied_count
 
     async def add_assessment(self, assessment_in: AssessmentIn) -> Assessment:

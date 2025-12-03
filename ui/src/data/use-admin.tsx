@@ -458,6 +458,9 @@ export const useDayAssignments = (dayId: string | number) => {
       return response.data;
     },
     enabled: !!dayId,
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnMount: true, // Refetch on component mount
+    staleTime: 0, // Always consider data stale for immediate updates
   });
 };
 

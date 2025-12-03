@@ -43,6 +43,7 @@ import { useTranslation } from "react-i18next";
 import type { DayAssignmentItem } from "@/client/types.gen";
 import { LinkButton } from "@/components/LinkButton";
 import { useUserDayAssignments } from "@/data";
+import { useAssignmentUpdates } from "@/hooks/useAssignmentUpdates";
 
 export const Route = createFileRoute("/_logged-in/$yearId/days/$dayId/")({
   component: RouteComponent,
@@ -57,6 +58,9 @@ function RouteComponent() {
     isLoading,
     error,
   } = useUserDayAssignments(yearId, dayId);
+
+  // Subscribe to real-time assignment updates
+  useAssignmentUpdates(Number.parseInt(dayId, 10), Number.parseInt(yearId, 10));
 
   if (isLoading) {
     return (

@@ -108,6 +108,9 @@ export const dayAssignmentsQueryOptions = (
     return response.data;
   },
   enabled: !!yearId && !!dayId,
+  refetchOnWindowFocus: true, // Refetch when window gains focus
+  refetchOnMount: true, // Refetch on component mount
+  staleTime: 0, // Always consider data stale for immediate updates
 });
 
 // Day assignments hook

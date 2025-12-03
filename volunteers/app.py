@@ -9,6 +9,8 @@ from prometheus_client import Counter, make_asgi_app
 
 from volunteers.api.router import router as api_router
 from volunteers.core.di import container
+from volunteers.core.socketio import sio, socket_app
+from volunteers.sockets.assignments import register_assignment_handlers
 
 logger.remove()
 logger.add(sys.stdout, level="DEBUG")
@@ -37,6 +39,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     # parse config
     c = container.config()
     logger.debug(f"Config: {c}")
+
+    # Register WebSocket handlers
+    await register_assignment_handlers(sio)
+    logger.info("WebSocket handlers registered")
+
     yield
     # Shutdown
     shutdown_resources = container.shutdown_resources()
@@ -47,6 +54,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 app = FastAPI(lifespan=lifespan, openapi_url="/api/v1/openapi.json", docs_url="/api/v1/docs")
 
 app.include_router(api_router)
+
+# Mount Socket.IO app at /socket.io
+app.mount("/socket.io", socket_app)
 
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
