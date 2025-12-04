@@ -11,7 +11,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { AssessmentInAttendance } from "@/client/types.gen";
 
@@ -42,6 +42,8 @@ export function AssessmentInput({
     useState<AssessmentInAttendance | null>(null);
   const [value, setValue] = useState("");
   const [comment, setComment] = useState("");
+  const scoreInputRef = useRef<HTMLInputElement | null>(null);
+  const commentInputRef = useRef<HTMLInputElement | null>(null);
 
   const averageScore = useMemo(() => {
     if (!assessments.length) {
@@ -81,14 +83,15 @@ export function AssessmentInput({
 
   const handleSave = async () => {
     const numValue = Number.parseFloat(value);
-    if (Number.isNaN(numValue)) {
+    const trimmedComment = comment.trim();
+    if (Number.isNaN(numValue) || !trimmedComment) {
       return;
     }
 
     if (editingAssessment) {
-      await onEdit(editingAssessment.assessment_id, numValue, comment);
+      await onEdit(editingAssessment.assessment_id, numValue, trimmedComment);
     } else {
-      await onAdd(userDayId, numValue, comment);
+      await onAdd(userDayId, numValue, trimmedComment);
     }
 
     handleCloseDialog();
@@ -175,6 +178,17 @@ export function AssessmentInput({
               type="number"
               value={value}
               onChange={(e) => setValue(e.target.value)}
+              inputRef={scoreInputRef}
+              onKeyDown={(event) => {
+                if (
+                  event.key === "Enter" &&
+                  !event.shiftKey &&
+                  !event.ctrlKey
+                ) {
+                  event.preventDefault();
+                  commentInputRef.current?.focus();
+                }
+              }}
               slotProps={{
                 htmlInput: { step: 0.01 },
               }}
@@ -197,9 +211,17 @@ export function AssessmentInput({
               label={t("Comment")}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
+              inputRef={commentInputRef}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && event.ctrlKey) {
+                  event.preventDefault();
+                  handleSave();
+                }
+              }}
               multiline
               rows={3}
               fullWidth
+              required
             />
           </Box>
         </DialogContent>
@@ -213,7 +235,11 @@ export function AssessmentInput({
           <Button
             onClick={handleSave}
             variant="contained"
-            disabled={!value || Number.isNaN(Number.parseFloat(value))}
+            disabled={
+              !value ||
+              Number.isNaN(Number.parseFloat(value)) ||
+              !comment.trim()
+            }
           >
             {t("Save")}
           </Button>
