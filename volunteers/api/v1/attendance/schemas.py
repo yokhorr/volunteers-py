@@ -11,7 +11,7 @@ class SaveDayAttendanceRequest(BaseModel):
 class AssessmentInAttendance(BaseModel):
     assessment_id: int
     comment: str
-    value: int
+    value: float
 
 
 class AttendanceItem(BaseModel):

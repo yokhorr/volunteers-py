@@ -516,7 +516,7 @@ async def test_edit_user_day_by_user_day_id_not_found(year_service: YearService)
 
 @pytest.mark.asyncio
 async def test_add_assessment(year_service: YearService) -> None:
-    assessment_in = AssessmentIn(user_day_id=1, comment="Nice", value=5)
+    assessment_in = AssessmentIn(user_day_id=1, comment="Nice", value=5.5)
     mock_session = MagicMock()
     mock_session.add = MagicMock()
     mock_session.commit = AsyncMock()
@@ -532,8 +532,8 @@ async def test_add_assessment(year_service: YearService) -> None:
 
 @pytest.mark.asyncio
 async def test_edit_assessment_by_assessment_id_success(year_service: YearService) -> None:
-    assessment_edit = AssessmentEditIn(comment="Updated", value=10)
-    dummy_assessment = Assessment(id=1, comment="Old", value=5)
+    assessment_edit = AssessmentEditIn(comment="Updated", value=9.5)
+    dummy_assessment = Assessment(id=1, comment="Old", value=5.25)
     mock_result = MagicMock()
     mock_result.scalar_one_or_none.return_value = dummy_assessment
     mock_session = MagicMock()
@@ -548,7 +548,7 @@ async def test_edit_assessment_by_assessment_id_success(year_service: YearServic
 
 @pytest.mark.asyncio
 async def test_edit_assessment_by_assessment_id_not_found(year_service: YearService) -> None:
-    assessment_edit = AssessmentEditIn(comment="Missing", value=0)
+    assessment_edit = AssessmentEditIn(comment="Missing", value=0.25)
     mock_result = MagicMock()
     mock_result.scalar_one_or_none.return_value = None
     mock_session = MagicMock()

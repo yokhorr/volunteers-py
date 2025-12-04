@@ -6,7 +6,7 @@ from volunteers.schemas.base import BaseSuccessResponse
 class AddAssessmentRequest(BaseModel):
     user_day_id: int
     comment: str
-    value: int = Field(ge=0, le=10, description="Assessment value from 0 to 10")
+    value: float = Field(description="Assessment value (any real number)")
 
 
 class AddAssessmentResponse(BaseSuccessResponse):
@@ -15,14 +15,17 @@ class AddAssessmentResponse(BaseSuccessResponse):
 
 class EditAssessmentRequest(BaseModel):
     comment: str | None = None
-    value: int | None = Field(None, ge=0, le=10, description="Assessment value from 0 to 10")
+    value: float | None = Field(
+        None,
+        description="Assessment value (any real number)",
+    )
 
 
 class AssessmentItem(BaseModel):
     assessment_id: int
     user_day_id: int
     comment: str
-    value: int
+    value: float
 
 
 class AssessmentsResponse(BaseModel):

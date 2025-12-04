@@ -11,7 +11,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { AssessmentInAttendance } from "@/client/types.gen";
 
@@ -43,12 +43,21 @@ export function AssessmentInput({
   const [value, setValue] = useState("");
   const [comment, setComment] = useState("");
 
-  const averageScore =
-    assessments.length > 0
-      ? Math.round(
-          assessments.reduce((sum, a) => sum + a.value, 0) / assessments.length,
-        )
-      : null;
+  const averageScore = useMemo(() => {
+    if (!assessments.length) {
+      return null;
+    }
+    const avg =
+      assessments.reduce((sum, a) => sum + a.value, 0) / assessments.length;
+    return Number(avg.toFixed(2));
+  }, [assessments]);
+
+  const formatAverage = (score: number) => {
+    if (Number.isInteger(score)) {
+      return score.toString();
+    }
+    return score.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+  };
 
   const handleOpenDialog = (assessment?: AssessmentInAttendance) => {
     if (assessment) {
@@ -71,8 +80,8 @@ export function AssessmentInput({
   };
 
   const handleSave = async () => {
-    const numValue = Number.parseInt(value, 10);
-    if (Number.isNaN(numValue) || numValue < 0 || numValue > 10) {
+    const numValue = Number.parseFloat(value);
+    if (Number.isNaN(numValue)) {
       return;
     }
 
@@ -91,6 +100,8 @@ export function AssessmentInput({
       handleCloseDialog();
     }
   };
+
+  const presetValues = [0.1, 0.25, 0.5];
 
   return (
     <>
@@ -127,7 +138,7 @@ export function AssessmentInput({
             >
               <Star sx={{ fontSize: 16, color: "warning.main" }} />
               <Typography variant="body2" fontWeight="medium">
-                {averageScore}
+                {formatAverage(averageScore)}
               </Typography>
             </Box>
           </Tooltip>
@@ -165,11 +176,23 @@ export function AssessmentInput({
               value={value}
               onChange={(e) => setValue(e.target.value)}
               slotProps={{
-                htmlInput: { min: 0, max: 10, step: 1 },
+                htmlInput: { step: 0.01 },
               }}
               fullWidth
               required
             />
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              {presetValues.map((preset) => (
+                <Button
+                  key={preset}
+                  variant="outlined"
+                  size="small"
+                  onClick={() => setValue(preset.toString())}
+                >
+                  {preset}
+                </Button>
+              ))}
+            </Box>
             <TextField
               label={t("Comment")}
               value={comment}
@@ -190,12 +213,7 @@ export function AssessmentInput({
           <Button
             onClick={handleSave}
             variant="contained"
-            disabled={
-              !value ||
-              Number.isNaN(Number.parseInt(value, 10)) ||
-              Number.parseInt(value, 10) < 0 ||
-              Number.parseInt(value, 10) > 10
-            }
+            disabled={!value || Number.isNaN(Number.parseFloat(value))}
           >
             {t("Save")}
           </Button>
