@@ -69,3 +69,19 @@ class RegistrationFormItem(BaseModel):
 
 class RegistrationFormsResponse(BaseModel):
     forms: list[RegistrationFormItem]
+
+
+class ResultItem(BaseModel):
+    user_id: int
+    first_name_ru: str
+    last_name_ru: str
+    patronymic_ru: str | None
+    first_name_en: str
+    last_name_en: str
+    experience: float
+    rank: str
+    total_assessments: float
+
+
+class ResultsResponse(BaseModel):
+    results: list[ResultItem]

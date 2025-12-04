@@ -1116,6 +1116,24 @@ files = [
 ]
 
 [[package]]
+name = "jinja2"
+version = "3.1.6"
+description = "A very fast and expressive template engine."
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = [
+    {file = "jinja2-3.1.6-py3-none-any.whl", hash = "sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67"},
+    {file = "jinja2-3.1.6.tar.gz", hash = "sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d"},
+]
+
+[package.dependencies]
+MarkupSafe = ">=2.0"
+
+[package.extras]
+i18n = ["Babel (>=2.7)"]
+
+[[package]]
 name = "loguru"
 version = "0.7.3"
 description = "Python logging made (stupidly) simple"
@@ -2772,4 +2790,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.13"
-content-hash = "63dd96707af994d6c7e066ab89629c23edab87c503e2c2341b0aa4c7457e6637"
+content-hash = "6e51ade57c465f1eaad847221ae8f1b0c7976a53f80789565971b11d9c5669b9"

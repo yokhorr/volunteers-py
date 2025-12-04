@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from prometheus_client import Counter, make_asgi_app
 
@@ -57,6 +58,9 @@ app.include_router(api_router)
 
 # Mount Socket.IO app at /socket.io
 app.mount("/socket.io", socket_app)
+
+# Serve static files for certificates
+app.mount("/static", StaticFiles(directory="volunteers/static"), name="static")
 
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)

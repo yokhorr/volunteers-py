@@ -21,6 +21,7 @@ import {
   getYearDaysApiV1AdminDayYearYearIdGet,
   getYearHallsApiV1AdminHallYearYearIdGet,
   getYearPositionsApiV1AdminYearYearIdPositionsGet,
+  getYearResultsApiV1AdminYearYearIdResultsGet,
 } from "@/client";
 import type {
   AddDayRequest,
@@ -33,6 +34,7 @@ import type {
   EditHallRequest,
   EditPositionRequest,
   EditUserDayRequest,
+  EditUserRequest,
   EditYearRequest,
 } from "@/client/types.gen";
 import { queryKeys } from "./query-keys";
@@ -180,13 +182,7 @@ export const useEditPosition = (yearId: string | number) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.admin.positions.all(),
       });
-      // Invalidate year positions queries for all years since we don't know which year this position belongs to
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.admin.positions.all(),
-        predicate: (query) => {
-          return query.queryKey.includes("year");
-        },
-      });
+      // Invalidate year form since position might be used there
       queryClient.invalidateQueries({
         queryKey: queryKeys.year.form(yearId),
       });
@@ -319,20 +315,7 @@ export const useEditUser = () => {
       data,
     }: {
       userId: string | number;
-      data: {
-        first_name_ru?: string | null;
-        last_name_ru?: string | null;
-        first_name_en?: string | null;
-        last_name_en?: string | null;
-        isu_id?: number | null;
-        patronymic_ru?: string | null;
-        phone?: string | null;
-        email?: string | null;
-        telegram_username?: string | null;
-        is_admin?: boolean | null;
-        telegram_id?: number | null;
-        gender?: string | null;
-      };
+      data: EditUserRequest;
     }) => {
       const response = await editUserApiV1AdminUserUserIdEditPost({
         path: { user_id: Number(userId) },
@@ -440,6 +423,20 @@ export const useRegistrationForms = (yearId: string | number) => {
           path: { year_id: Number(yearId) },
           throwOnError: true,
         });
+      return response.data;
+    },
+    enabled: !!yearId,
+  });
+};
+
+export const useYearResults = (yearId: string | number) => {
+  return useQuery({
+    queryKey: queryKeys.admin.results.year(yearId),
+    queryFn: async () => {
+      const response = await getYearResultsApiV1AdminYearYearIdResultsGet({
+        path: { year_id: Number(yearId) },
+        throwOnError: true,
+      });
       return response.data;
     },
     enabled: !!yearId,

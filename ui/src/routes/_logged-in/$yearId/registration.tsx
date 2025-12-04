@@ -21,6 +21,7 @@ import { observer } from "mobx-react-lite";
 import { useId } from "react";
 import { useTranslation } from "react-i18next";
 import * as Yup from "yup";
+import type { Gender } from "@/client/types.gen";
 import { useSaveRegistration } from "@/data/use-year";
 import { authStore } from "@/store/auth";
 import { GENDER_OPTIONS, getGenderLabel } from "@/utils/gender";
@@ -94,7 +95,7 @@ function RouteComponent() {
             patronymic_ru: values.patronymic_ru,
             phone: values.phone,
             email: values.email,
-            gender: values.gender,
+            gender: values.gender as Gender | null,
           },
         });
         // User data will be updated via the mutation's cache invalidation

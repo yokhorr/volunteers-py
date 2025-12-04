@@ -230,5 +230,15 @@
   "Data copied to clipboard": "Data copied to clipboard",
   "Medals": "Medals",
   "Registration Status": "Registration Status",
-  "ID": "ID"
+  "ID": "ID",
+  "Rank": "Rank",
+  "Total Assessments": "Total Assessments",
+  "Generate Certificates": "Generate Certificates",
+  "bronze_volunteer": "Bronze Volunteer",
+  "silver_volunteer": "Silver Volunteer",
+  "gold_volunteer": "Gold Volunteer",
+  "All registered volunteers for this year": "All registered volunteers for this year",
+  "results": "results",
+  "Failed to load results": "Failed to load results",
+  "No volunteers found": "No volunteers found"
 }

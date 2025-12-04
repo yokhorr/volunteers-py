@@ -180,11 +180,18 @@ export function AssessmentInput({
               onChange={(e) => setValue(e.target.value)}
               inputRef={scoreInputRef}
               onKeyDown={(event) => {
-                if (
+                if (event.key === "Enter" && event.ctrlKey) {
+                  // Ctrl+Enter: save if comment is filled
+                  if (comment.trim()) {
+                    event.preventDefault();
+                    handleSave();
+                  }
+                } else if (
                   event.key === "Enter" &&
                   !event.shiftKey &&
                   !event.ctrlKey
                 ) {
+                  // Just Enter: move to comment field
                   event.preventDefault();
                   commentInputRef.current?.focus();
                 }

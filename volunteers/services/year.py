@@ -6,6 +6,7 @@ from sqlalchemy.orm import selectinload
 
 from volunteers.api.v1.admin.year.schemas import ExperienceItem
 from volunteers.bot.notify import Notifier
+from volunteers.core.experience import ATTENDANCE_MAP, get_position_multiplier
 from volunteers.models import (
     ApplicationForm,
     Assessment,
@@ -744,3 +745,192 @@ class YearService(BaseService):
                     )
 
             return list(experience_by_year.values())
+
+    async def calculate_year_experience(self, year_id: int, user_id: int) -> float:
+        """Calculate experience for a user in a specific year.
+
+        Formula:
+        experience = (
+            sum(day.score * attendance_map[attendance] * position_multiplier[position]
+                for day in mandatory_days) / number_of_mandatory_days
+        ) + sum(assessment.value for all assessments in year)
+
+        Args:
+            year_id: ID of the year to calculate for
+            user_id: ID of the user
+
+        Returns:
+            Calculated experience value for the year
+        """
+        async with self.session_scope() as session:
+            # Get all days for this year
+            days_result = await session.execute(select(Day).where(Day.year_id == year_id))
+            all_days = list(days_result.scalars().all())
+
+            # Get mandatory days
+            mandatory_days = [day for day in all_days if day.mandatory]
+            mandatory_days_count = len(mandatory_days)
+
+            if mandatory_days_count == 0:
+                # No mandatory days, skip attendance-based experience
+                mandatory_experience = 0.0
+            else:
+                # Get user's assignments for mandatory days
+                user_days_result = await session.execute(
+                    select(UserDay)
+                    .join(ApplicationForm)
+                    .join(Day)
+                    .where(
+                        and_(
+                            ApplicationForm.user_id == user_id,
+                            ApplicationForm.year_id == year_id,
+                            Day.mandatory.is_(True),
+                        )
+                    )
+                    .options(
+                        selectinload(UserDay.day),
+                        selectinload(UserDay.position),
+                        selectinload(UserDay.assessments),
+                    )
+                )
+                user_days = list(user_days_result.scalars().all())
+
+                # Calculate attendance-based experience
+                attendance_experience_sum = 0.0
+                for user_day in user_days:
+                    day_score = user_day.day.score if user_day.day.score else 0.0
+                    attendance_weight = ATTENDANCE_MAP.get(user_day.attendance, 0.0)
+                    position_mult = get_position_multiplier(user_day.position.name)
+
+                    attendance_experience_sum += day_score * attendance_weight * position_mult
+
+                # Average over number of mandatory days
+                mandatory_experience = attendance_experience_sum / mandatory_days_count
+
+            # Get all assessments for this user in this year
+            assessments_result = await session.execute(
+                select(Assessment)
+                .join(UserDay)
+                .join(ApplicationForm)
+                .where(
+                    and_(
+                        ApplicationForm.user_id == user_id,
+                        ApplicationForm.year_id == year_id,
+                    )
+                )
+            )
+            assessments = list(assessments_result.scalars().all())
+
+            # Calculate total assessments value
+            assessments_sum = sum(assessment.value for assessment in assessments)
+
+            return mandatory_experience + assessments_sum
+
+    async def get_year_results(self, year_id: int) -> list[tuple[ApplicationForm, float, float]]:
+        """Get results for all registered volunteers in a year.
+
+        Returns list of tuples: (application_form, total_assessments_sum, calculated_experience)
+
+        Experience is calculated dynamically by summing experience from all previous years
+        (compared by year_id) plus current year experience.
+        """
+        async with self.session_scope() as session:
+            # Get all application forms for this year with user and user_days data
+            result = await session.execute(
+                select(ApplicationForm)
+                .where(ApplicationForm.year_id == year_id)
+                .options(
+                    selectinload(ApplicationForm.user),
+                    selectinload(ApplicationForm.user_days).selectinload(UserDay.assessments),
+                    selectinload(ApplicationForm.user_days).selectinload(UserDay.day),
+                )
+                .order_by(ApplicationForm.user_id)
+            )
+            forms = list(result.scalars().all())
+
+            # Calculate total assessments sum and experience for each form
+            results = []
+            for form in forms:
+                total_assessments = sum(
+                    assessment.value
+                    for user_day in form.user_days
+                    for assessment in user_day.assessments
+                )
+
+                # Calculate experience dynamically:
+                # Sum experience from all previous years (by year_id) + current year
+                previous_experience = 0.0
+
+                # Get all application forms for this user in previous years (year_id < current)
+                prev_forms_result = await session.execute(
+                    select(ApplicationForm)
+                    .where(
+                        and_(
+                            ApplicationForm.user_id == form.user_id,
+                            ApplicationForm.year_id < year_id,
+                        )
+                    )
+                    .order_by(ApplicationForm.year_id)
+                )
+                prev_forms = list(prev_forms_result.scalars().all())
+
+                # Calculate experience for each previous year
+                for prev_form in prev_forms:
+                    prev_year_exp = await self.calculate_year_experience(
+                        prev_form.year_id, form.user_id
+                    )
+                    previous_experience += prev_year_exp
+
+                # Calculate current year experience
+                current_year_exp = await self.calculate_year_experience(year_id, form.user_id)
+
+                # Total = sum of all years
+                total_experience = previous_experience + current_year_exp
+
+                results.append((form, total_assessments, total_experience))
+
+            return results
+
+    async def calculate_experience_for_year(
+        self, year_id: int
+    ) -> list[tuple[int, str, int, int, int]]:
+        """Calculate experience for all users in a year.
+
+        Returns a list of tuples with user ID, full name, total attendance, and total assessments.
+        """
+        async with self.session_scope() as session:
+            # Get all user days for this year with related data
+            result = await session.execute(
+                select(UserDay)
+                .join(ApplicationForm)
+                .where(ApplicationForm.year_id == year_id)
+                .options(
+                    selectinload(UserDay.application_form).selectinload(ApplicationForm.user),
+                    selectinload(UserDay.assessments),
+                )
+                .order_by(ApplicationForm.user_id)
+            )
+            user_days = list(result.scalars().all())
+
+            # Calculate total attendance and assessments for each user
+            experience_data: dict[int, list[int | str | float]] = {}
+
+            for user_day in user_days:
+                user_id = user_day.application_form.user_id
+                full_name = f"{user_day.application_form.user.first_name_ru} {user_day.application_form.user.last_name_ru}"
+
+                if user_id not in experience_data:
+                    experience_data[user_id] = [user_id, full_name, 0, 0.0]
+
+                # Increment attendance count
+                row = experience_data[user_id]
+                row[2] = int(row[2]) + 1
+
+                # Calculate total assessments value
+                total_assessments = sum(assessment.value for assessment in user_day.assessments)
+                row[3] = float(row[3]) + total_assessments
+
+            return [
+                (int(row[0]), str(row[1]), int(row[2]), int(row[3]), int(row[3]))
+                for row in experience_data.values()
+            ]

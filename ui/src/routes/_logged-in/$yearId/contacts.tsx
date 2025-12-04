@@ -103,7 +103,7 @@ function RouteComponent() {
         data.users
           .map((user) => user.gender)
           .filter(
-            (gender): gender is string =>
+            (gender): gender is NonNullable<typeof gender> =>
               gender !== null && gender !== undefined,
           ),
       ),
@@ -516,7 +516,7 @@ function RouteComponent() {
                         const label =
                           typeof option === "string" ? option : option.label;
                         return (
-                          <MenuItem key={value} value={value}>
+                          <MenuItem key={value ?? ""} value={value ?? ""}>
                             {label}
                           </MenuItem>
                         );

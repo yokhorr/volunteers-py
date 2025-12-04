@@ -3,11 +3,12 @@ from typing import Annotated
 
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
-from fastapi.responses import StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from loguru import logger
 
 from volunteers.auth.deps import with_admin
 from volunteers.core.di import Container
+from volunteers.core.experience import get_rank
 from volunteers.models import User
 from volunteers.schemas.position import PositionOut
 from volunteers.schemas.year import YearEditIn, YearIn
@@ -21,6 +22,8 @@ from .schemas import (
     EditYearRequest,
     RegistrationFormItem,
     RegistrationFormsResponse,
+    ResultItem,
+    ResultsResponse,
     UserListItem,
     UserListResponse,
 )
@@ -183,6 +186,39 @@ async def get_registration_forms(
 
 
 @router.get(
+    "/{year_id}/results",
+    response_model=ResultsResponse,
+    description="Get results for all registered volunteers in a year (admin only)",
+)
+@inject
+async def get_year_results(
+    year_id: Annotated[int, Path(title="The ID of the year")],
+    _: Annotated[User, Depends(with_admin)],
+    year_service: Annotated[YearService, Depends(Provide[Container.year_service])],
+) -> ResultsResponse:
+    results_data = await year_service.get_year_results(year_id=year_id)
+
+    result_items: list[ResultItem] = []
+    for form, total_assessments, calculated_experience in results_data:
+        rank = get_rank(calculated_experience)
+        result_items.append(
+            ResultItem(
+                user_id=form.user.id,
+                first_name_ru=form.user.first_name_ru,
+                last_name_ru=form.user.last_name_ru,
+                patronymic_ru=form.user.patronymic_ru,
+                first_name_en=form.user.first_name_en,
+                last_name_en=form.user.last_name_en,
+                experience=calculated_experience,
+                rank=rank,
+                total_assessments=total_assessments,
+            )
+        )
+
+    return ResultsResponse(results=result_items)
+
+
+@router.get(
     "/{year_id}/export-csv",
     description="Export all year data to ZIP archive with multiple CSV files",
 )
@@ -212,3 +248,94 @@ async def export_year_csv(
         media_type="application/zip",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
+
+
+@router.get(
+    "/{year_id}/certificates",
+    response_class=HTMLResponse,
+    description="Generate certificates for all volunteers with attendance (admin only)",
+)
+@inject
+async def generate_certificates(
+    year_id: Annotated[int, Path(title="The ID of the year")],
+    _: Annotated[User, Depends(with_admin)],
+    year_service: Annotated[YearService, Depends(Provide[Container.year_service])],
+) -> HTMLResponse:
+    """Generate HTML page with certificates for volunteers who attended at least one mandatory day."""
+    from pathlib import Path
+
+    from jinja2 import Environment, FileSystemLoader
+
+    from volunteers.models.attendance import Attendance
+
+    # Get year info
+    year = await year_service.get_year_by_year_id(year_id)
+    if not year:
+        raise HTTPException(status_code=404, detail="Year not found")
+
+    # Get results for all volunteers
+    results_data = await year_service.get_year_results(year_id=year_id)
+
+    logger.info(
+        f"Certificate generation for year {year_id}: Found {len(results_data)} registered volunteers"
+    )
+
+    # Filter volunteers who have at least one YES or LATE attendance on mandatory days
+    certificates = []
+    for form, _total_assessments, calculated_experience in results_data:
+        # Check if volunteer has any attendance (YES or LATE) on mandatory days
+        has_attendance = any(
+            user_day.attendance in (Attendance.YES, Attendance.LATE) and user_day.day.mandatory
+            for user_day in form.user_days
+        )
+
+        if has_attendance:
+            # Format full name in English: Last Name, First Name (ФИО order)
+            full_name = f"{form.user.last_name_en} {form.user.first_name_en}"
+
+            # Get rank and format it
+            rank = get_rank(calculated_experience)
+            rank_display = rank.replace("_", " ").title()
+
+            certificates.append(
+                {
+                    "full_name": full_name,
+                    "full_name_en": full_name,  # Same as full_name now
+                    "rank": rank,
+                    "rank_display": rank_display,
+                    "experience": f"{calculated_experience:.2f}",
+                }
+            )
+
+    logger.info(
+        f"Generated {len(certificates)} certificates for year {year_id} (filtered by attendance)"
+    )
+
+    # Load Jinja2 template
+    # Path: router.py -> year/ -> admin/ -> v1/ -> api/ -> volunteers/
+    templates_dir = Path(__file__).parent.parent.parent.parent.parent / "templates"
+    env = Environment(loader=FileSystemLoader(str(templates_dir)), autoescape=True)
+    template = env.get_template("certificates.html")
+
+    # Load SVG background from /ref/temp.svg and convert to base64 data URI
+    # Go up one more level to get to project root, then to ref/
+    project_root = Path(__file__).parent.parent.parent.parent.parent.parent
+    svg_path = project_root / "ref" / "temp.svg"
+    svg_data_uri = ""
+    if svg_path.exists():
+        import base64
+
+        svg_content = svg_path.read_bytes()
+        svg_base64 = base64.b64encode(svg_content).decode("utf-8")
+        svg_data_uri = f"data:image/svg+xml;base64,{svg_base64}"
+
+    # Render template
+    html_content = template.render(
+        year_name=year.year_name,
+        certificates=certificates,
+        svg_data_uri=svg_data_uri,
+    )
+
+    logger.info(f"Generated {len(certificates)} certificates for year {year_id}")
+
+    return HTMLResponse(content=html_content)

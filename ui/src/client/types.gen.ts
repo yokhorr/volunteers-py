@@ -2,7 +2,13 @@
 
 export type AddAssessmentRequest = {
     user_day_id: number;
+    /**
+     * Assessment comment
+     */
     comment: string;
+    /**
+     * Assessment value (any real number)
+     */
     value: number;
 };
 
@@ -97,6 +103,12 @@ export type ApplicationFormYearSavedResponse = {
     open_for_registration: boolean;
 };
 
+export type AssessmentInAttendance = {
+    assessment_id: number;
+    comment: string;
+    value: number;
+};
+
 export type AssessmentItem = {
     assessment_id: number;
     user_day_id: number;
@@ -120,12 +132,6 @@ export type AssignmentsResponse = {
 };
 
 export type Attendance = 'yes' | 'no' | 'late' | 'sick' | 'unknown';
-
-export type AssessmentInAttendance = {
-    assessment_id: number;
-    comment: string;
-    value: number;
-};
 
 export type AttendanceItem = {
     user_day_id: number;
@@ -188,7 +194,13 @@ export type DayOutUser = {
 };
 
 export type EditAssessmentRequest = {
+    /**
+     * Assessment comment
+     */
     comment?: string | null;
+    /**
+     * Assessment value (any real number)
+     */
     value?: number | null;
 };
 
@@ -230,7 +242,7 @@ export type EditUserRequest = {
     telegram_username?: string | null;
     is_admin?: boolean | null;
     telegram_id?: number | null;
-    gender?: string | null;
+    gender: Gender | null;
 };
 
 export type EditYearRequest = {
@@ -251,6 +263,8 @@ export type ExperienceItem = {
     };
     assessments: Array<string>;
 };
+
+export type Gender = 'male' | 'female' | 'unspecified';
 
 export type HttpValidationError = {
     detail?: Array<ValidationError>;
@@ -288,7 +302,7 @@ export type RegistrationFormItem = {
     phone: string | null;
     email: string | null;
     telegram_username: string | null;
-    gender: string | null;
+    gender: Gender | null;
     itmo_group: string | null;
     comments: string;
     needs_invitation: boolean;
@@ -318,7 +332,23 @@ export type RegistrationRequest = {
     patronymic_ru?: string | null;
     phone?: string | null;
     email?: string | null;
-    gender?: string | null;
+    gender?: Gender | null;
+};
+
+export type ResultItem = {
+    user_id: number;
+    first_name_ru: string;
+    last_name_ru: string;
+    patronymic_ru: string | null;
+    first_name_en: string;
+    last_name_en: string;
+    experience: number;
+    rank: string;
+    total_assessments: number;
+};
+
+export type ResultsResponse = {
+    results: Array<ResultItem>;
 };
 
 export type SaveDayAttendanceRequest = {
@@ -358,8 +388,8 @@ export type TelegramMigrateRequest = {
 
 export type UserListItem = {
     id: number;
-    first_name_ru: string;
-    last_name_ru: string;
+    first_name_ru: string | null;
+    last_name_ru: string | null;
     patronymic_ru: string | null;
     first_name_en: string;
     last_name_en: string;
@@ -367,7 +397,7 @@ export type UserListItem = {
     email: string | null;
     phone: string | null;
     telegram_username: string | null;
-    gender: string | null;
+    gender: Gender | null;
     is_registered: boolean;
 };
 
@@ -384,7 +414,7 @@ export type UserUpdateRequest = {
     patronymic_ru?: string | null;
     phone?: string | null;
     email?: string | null;
-    gender?: string | null;
+    gender?: Gender | null;
 };
 
 export type ValidationError = {
@@ -417,8 +447,8 @@ export type VolunteersApiV1AdminUserSchemasUserResponse = {
     phone: string | null;
     email: string | null;
     telegram_username: string | null;
-    gender: string | null;
     is_admin: boolean;
+    gender: Gender | null;
 };
 
 export type VolunteersApiV1AuthSchemasUserResponse = {
@@ -433,7 +463,7 @@ export type VolunteersApiV1AuthSchemasUserResponse = {
     phone: string | null;
     email: string | null;
     telegram_username: string | null;
-    gender: string | null;
+    gender: Gender | null;
 };
 
 export type AddAssessmentApiV1AdminAssessmentAddPostData = {
@@ -785,6 +815,20 @@ export type EditPositionApiV1AdminPositionPositionIdEditPostResponses = {
     200: unknown;
 };
 
+export type ExportUsersCsvApiV1AdminUserExportCsvGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/admin/user/export-csv';
+};
+
+export type ExportUsersCsvApiV1AdminUserExportCsvGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
 export type GetAllUsersApiV1AdminUserGetData = {
     body?: never;
     path?: never;
@@ -1097,6 +1141,58 @@ export type GetRegistrationFormsApiV1AdminYearYearIdRegistrationFormsGetResponse
 };
 
 export type GetRegistrationFormsApiV1AdminYearYearIdRegistrationFormsGetResponse = GetRegistrationFormsApiV1AdminYearYearIdRegistrationFormsGetResponses[keyof GetRegistrationFormsApiV1AdminYearYearIdRegistrationFormsGetResponses];
+
+export type GetYearResultsApiV1AdminYearYearIdResultsGetData = {
+    body?: never;
+    path: {
+        year_id: number;
+    };
+    query?: never;
+    url: '/api/v1/admin/year/{year_id}/results';
+};
+
+export type GetYearResultsApiV1AdminYearYearIdResultsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetYearResultsApiV1AdminYearYearIdResultsGetError = GetYearResultsApiV1AdminYearYearIdResultsGetErrors[keyof GetYearResultsApiV1AdminYearYearIdResultsGetErrors];
+
+export type GetYearResultsApiV1AdminYearYearIdResultsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: ResultsResponse;
+};
+
+export type GetYearResultsApiV1AdminYearYearIdResultsGetResponse = GetYearResultsApiV1AdminYearYearIdResultsGetResponses[keyof GetYearResultsApiV1AdminYearYearIdResultsGetResponses];
+
+export type ExportYearCsvApiV1AdminYearYearIdExportCsvGetData = {
+    body?: never;
+    path: {
+        year_id: number;
+    };
+    query?: never;
+    url: '/api/v1/admin/year/{year_id}/export-csv';
+};
+
+export type ExportYearCsvApiV1AdminYearYearIdExportCsvGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ExportYearCsvApiV1AdminYearYearIdExportCsvGetError = ExportYearCsvApiV1AdminYearYearIdExportCsvGetErrors[keyof ExportYearCsvApiV1AdminYearYearIdExportCsvGetErrors];
+
+export type ExportYearCsvApiV1AdminYearYearIdExportCsvGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type SaveDayAttendanceApiV1AttendanceSavePostData = {
     body: SaveDayAttendanceRequest;
