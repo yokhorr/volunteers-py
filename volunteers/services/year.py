@@ -29,7 +29,7 @@ from volunteers.schemas.year import YearEditIn, YearIn
 from volunteers.sockets.assignments import broadcast_assignment_update
 
 from .base import BaseService
-from .errors import DomainError
+from .errors import DomainError, PositionAlreadyExists
 
 
 class ApplicationFormNotFound(DomainError):
@@ -239,16 +239,36 @@ class YearService(BaseService):
             return result.scalar_one_or_none()
 
     async def add_position(self, position_in: PositionIn) -> Position:
-        created_position = Position(
-            year_id=position_in.year_id,
-            name=position_in.name,
-            can_desire=position_in.can_desire,
-            has_halls=position_in.has_halls,
-            is_manager=position_in.is_manager,
-            score=position_in.score,
-            description=position_in.description,
-        )
         async with self.session_scope() as session:
+            # Check uniqueness per year
+            existing = await session.execute(
+                select(Position).where(
+                    and_(
+                        Position.year_id == position_in.year_id,
+                        Position.name == position_in.name,
+                    )
+                )
+            )
+            if existing.scalar_one_or_none() is not None:
+                raise PositionAlreadyExists()
+
+            # Удалите эту часть:
+            # # Guard against current global unique constraint on name (DB may still enforce this)
+            # existing_global = await session.execute(
+            #     select(Position).where(Position.name == position_in.name)
+            # )
+            # if existing_global.scalar_one_or_none() is not None:
+            #     raise DomainError("Position with this name already exists")
+
+            created_position = Position(
+                year_id=position_in.year_id,
+                name=position_in.name,
+                can_desire=position_in.can_desire,
+                has_halls=position_in.has_halls,
+                is_manager=position_in.is_manager,
+                score=position_in.score,
+                description=position_in.description,
+            )
             session.add(created_position)
             await session.commit()
         return created_position
@@ -263,13 +283,26 @@ class YearService(BaseService):
             existing_position = await session.execute(
                 select(Position).where(Position.id == position_id)
             )
-
             updated_position = existing_position.scalar_one_or_none()
             if not updated_position:
                 raise PositionNotFound()
 
             if (name := position_edit_in.name) is not None:
+                # Ensure uniqueness of position name within the same year (exclude current position)
+                existing = await session.execute(
+                    select(Position).where(
+                        and_(
+                            Position.year_id == updated_position.year_id,
+                            Position.name == name,
+                            Position.id != position_id,
+                        )
+                    )
+                )
+                if existing.scalar_one_or_none() is not None:
+                    raise PositionAlreadyExists()
+
                 updated_position.name = name
+
             if (can_desire := position_edit_in.can_desire) is not None:
                 updated_position.can_desire = can_desire
             if (has_halls := position_edit_in.has_halls) is not None:
@@ -860,7 +893,7 @@ class YearService(BaseService):
             forms = list(result.scalars().all())
 
             # Calculate total assessments sum and experience for each form
-            results = []
+            results: list[tuple[ApplicationForm, float, float]] = []
             for form in forms:
                 total_assessments = sum(
                     assessment.value
@@ -892,56 +925,9 @@ class YearService(BaseService):
                     )
                     previous_experience += prev_year_exp
 
-                # Calculate current year experience
+                # Calculate current year exp
                 current_year_exp = await self.calculate_year_experience(year_id, form.user_id)
 
-                # Total = sum of all years
-                total_experience = previous_experience + current_year_exp
-
-                results.append((form, total_assessments, total_experience))
+                results.append((form, total_assessments, previous_experience + current_year_exp))
 
             return results
-
-    async def calculate_experience_for_year(
-        self, year_id: int
-    ) -> list[tuple[int, str, int, int, int]]:
-        """Calculate experience for all users in a year.
-
-        Returns a list of tuples with user ID, full name, total attendance, and total assessments.
-        """
-        async with self.session_scope() as session:
-            # Get all user days for this year with related data
-            result = await session.execute(
-                select(UserDay)
-                .join(ApplicationForm)
-                .where(ApplicationForm.year_id == year_id)
-                .options(
-                    selectinload(UserDay.application_form).selectinload(ApplicationForm.user),
-                    selectinload(UserDay.assessments),
-                )
-                .order_by(ApplicationForm.user_id)
-            )
-            user_days = list(result.scalars().all())
-
-            # Calculate total attendance and assessments for each user
-            experience_data: dict[int, list[int | str | float]] = {}
-
-            for user_day in user_days:
-                user_id = user_day.application_form.user_id
-                full_name = f"{user_day.application_form.user.first_name_ru} {user_day.application_form.user.last_name_ru}"
-
-                if user_id not in experience_data:
-                    experience_data[user_id] = [user_id, full_name, 0, 0.0]
-
-                # Increment attendance count
-                row = experience_data[user_id]
-                row[2] = int(row[2]) + 1
-
-                # Calculate total assessments value
-                total_assessments = sum(assessment.value for assessment in user_day.assessments)
-                row[3] = float(row[3]) + total_assessments
-
-            return [
-                (int(row[0]), str(row[1]), int(row[2]), int(row[3]), int(row[3]))
-                for row in experience_data.values()
-            ]

@@ -90,7 +90,7 @@ class Position(Base, TimestampMixin):
     __tablename__ = "positions"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     year_id: Mapped[int] = mapped_column(ForeignKey("years.id"))
-    name: Mapped[str] = mapped_column(String, unique=True)
+    name: Mapped[str] = mapped_column(String)
     can_desire: Mapped[bool] = mapped_column(Boolean, default=False)
     has_halls: Mapped[bool] = mapped_column(Boolean, default=False)
     is_manager: Mapped[bool] = mapped_column(Boolean, default=False)

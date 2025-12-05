@@ -86,6 +86,12 @@ function RouteComponent() {
   const [editPositionScoreError, setEditPositionScoreError] = useState("");
   const [exportError, setExportError] = useState<string | null>(null);
 
+  // Position error state
+  const [addPositionError, setAddPositionError] = useState<string | null>(null);
+  const [editPositionError, setEditPositionError] = useState<string | null>(
+    null,
+  );
+
   // Hall management state
   const [isAddHallDialogOpen, setIsAddHallDialogOpen] = useState(false);
   const [isEditHallDialogOpen, setIsEditHallDialogOpen] = useState(false);
@@ -199,65 +205,110 @@ function RouteComponent() {
   const handleAddPosition = (e: React.FormEvent) => {
     e.preventDefault();
     setNewPositionScoreError("");
-    if (newPositionName.trim() && newPositionScore.trim()) {
-      const scoreValue = Number(newPositionScore);
-      if (Number.isNaN(scoreValue)) {
-        setNewPositionScoreError(t("Score must be a valid number"));
-        return;
-      }
+    setAddPositionError(null);
 
-      addPositionMutation.mutate(
-        {
-          year_id: Number(yearId),
-          name: newPositionName.trim(),
-          can_desire: newPositionCanDesire,
-          has_halls: newPositionHasHalls,
-          is_manager: newPositionIsManager,
-          score: scoreValue,
-          description: newPositionDescription.trim() || null,
-        },
-        {
-          onSuccess: () => {
-            closeAddDialogAndReset();
-          },
-        },
-      );
+    const trimmedName = newPositionName.trim();
+    if (!trimmedName) {
+      setAddPositionError(t("Position name is required"));
+      return;
     }
+
+    // Проверка на дубликат имени (регистронезависимо)
+    const nameExists = positions?.some(
+      (pos) => pos.name.toLowerCase() === trimmedName.toLowerCase(),
+    );
+
+    if (nameExists) {
+      setAddPositionError(
+        t("Position with this name already exists for the year"),
+      );
+      return;
+    }
+
+    if (!newPositionScore.trim()) {
+      setNewPositionScoreError(t("Score is required"));
+      return;
+    }
+
+    const scoreValue = Number(newPositionScore);
+    if (Number.isNaN(scoreValue)) {
+      setNewPositionScoreError(t("Score must be a valid number"));
+      return;
+    }
+
+    // Теперь отправляем — гарантированно без дубликата
+    addPositionMutation.mutate(
+      {
+        year_id: Number(yearId),
+        name: trimmedName,
+        can_desire: newPositionCanDesire,
+        has_halls: newPositionHasHalls,
+        is_manager: newPositionIsManager,
+        score: scoreValue,
+        description: newPositionDescription.trim() || null,
+      },
+      {
+        onSuccess: () => {
+          closeAddDialogAndReset();
+        },
+      },
+    );
   };
 
   const handleEditPosition = (e: React.FormEvent) => {
     e.preventDefault();
     setEditPositionScoreError("");
-    if (
-      editingPosition &&
-      editPositionName.trim() &&
-      editPositionScore.trim()
-    ) {
-      const scoreValue = Number(editPositionScore);
-      if (Number.isNaN(scoreValue)) {
-        setEditPositionScoreError(t("Score must be a valid number"));
-        return;
-      }
+    setEditPositionError(null);
 
-      editPositionMutation.mutate(
-        {
-          positionId: editingPosition.position_id,
-          data: {
-            name: editPositionName.trim(),
-            can_desire: editPositionCanDesire,
-            has_halls: editPositionHasHalls,
-            is_manager: editPositionIsManager,
-            score: scoreValue,
-            description: editPositionDescription.trim() || null,
-          },
-        },
-        {
-          onSuccess: () => {
-            closeEditDialogAndReset();
-          },
-        },
-      );
+    const trimmedName = editPositionName.trim();
+    if (!trimmedName) {
+      setEditPositionError(t("Position name is required"));
+      return;
     }
+
+    // Проверяем дубликат, исключая текущую позицию
+    const nameExists = positions?.some(
+      (pos) =>
+        pos.position_id !== editingPosition?.position_id &&
+        pos.name.toLowerCase() === trimmedName.toLowerCase(),
+    );
+
+    if (nameExists) {
+      setEditPositionError(
+        t("Position with this name already exists for the year"),
+      );
+      return;
+    }
+
+    if (!editPositionScore.trim()) {
+      setEditPositionScoreError(t("Score is required"));
+      return;
+    }
+
+    const scoreValue = Number(editPositionScore);
+    if (Number.isNaN(scoreValue)) {
+      setEditPositionScoreError(t("Score must be a valid number"));
+      return;
+    }
+
+    editPositionMutation.mutate(
+      {
+        positionId: editingPosition!.position_id,
+        data: {
+          name: trimmedName,
+          can_desire: editPositionCanDesire,
+          has_halls: editPositionHasHalls,
+          is_manager: editPositionIsManager,
+          score: scoreValue,
+          description: editPositionDescription.trim() || null,
+        },
+      },
+      {
+        onSuccess: () => {
+          closeEditDialogAndReset();
+        },
+      },
+    );
   };
 
   const openEditDialog = (position: PositionOut) => {
@@ -384,6 +435,7 @@ function RouteComponent() {
     setNewPositionScore("1.0");
     setNewPositionScoreTouched(false);
     setNewPositionDescription("");
+    setAddPositionError(null);
   };
 
   const closeEditDialogAndReset = () => {
@@ -397,6 +449,7 @@ function RouteComponent() {
     setEditPositionScore("1.0");
     setEditPositionScoreTouched(false);
     setEditPositionDescription("");
+    setEditPositionError(null);
   };
 
   const closeAddHallDialogAndReset = () => {
@@ -851,11 +904,14 @@ function RouteComponent() {
               value={newPositionName}
               onChange={(e) => setNewPositionName(e.target.value)}
               onBlur={() => setNewPositionTouched(true)}
-              error={newPositionTouched && !newPositionName.trim()}
+              error={
+                (newPositionTouched && !newPositionName.trim()) ||
+                !!addPositionError
+              }
               helperText={
-                newPositionTouched && !newPositionName.trim()
+                (newPositionTouched && !newPositionName.trim()
                   ? t("Position name is required")
-                  : addPositionMutation.error?.message
+                  : addPositionError) || ""
               }
               disabled={addPositionMutation.isPending}
             />
@@ -981,11 +1037,14 @@ function RouteComponent() {
               value={editPositionName}
               onChange={(e) => setEditPositionName(e.target.value)}
               onBlur={() => setEditPositionTouched(true)}
-              error={editPositionTouched && !editPositionName.trim()}
+              error={
+                (editPositionTouched && !editPositionName.trim()) ||
+                !!editPositionError
+              }
               helperText={
-                editPositionTouched && !editPositionName.trim()
+                (editPositionTouched && !editPositionName.trim()
                   ? t("Position name is required")
-                  : editPositionMutation.error?.message
+                  : editPositionError) || ""
               }
               disabled={editPositionMutation.isPending}
             />
