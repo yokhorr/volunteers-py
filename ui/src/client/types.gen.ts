@@ -48,6 +48,8 @@ export type AddPositionRequest = {
     can_desire?: boolean;
     has_halls?: boolean;
     is_manager?: boolean;
+    score?: number;
+    description?: string | null;
 };
 
 export type AddPositionResponse = {
@@ -222,6 +224,8 @@ export type EditPositionRequest = {
     can_desire?: boolean | null;
     has_halls?: boolean | null;
     is_manager?: boolean | null;
+    score?: number | null;
+    description?: string | null;
 };
 
 export type EditUserDayRequest = {
@@ -283,6 +287,8 @@ export type PositionOut = {
     can_desire: boolean;
     has_halls: boolean;
     is_manager: boolean;
+    score?: number;
+    description?: string | null;
     position_id: number;
 };
 
@@ -1193,6 +1199,33 @@ export type ExportYearCsvApiV1AdminYearYearIdExportCsvGetResponses = {
      */
     200: unknown;
 };
+
+export type GenerateCertificatesApiV1AdminYearYearIdCertificatesGetData = {
+    body?: never;
+    path: {
+        year_id: number;
+    };
+    query?: never;
+    url: '/api/v1/admin/year/{year_id}/certificates';
+};
+
+export type GenerateCertificatesApiV1AdminYearYearIdCertificatesGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GenerateCertificatesApiV1AdminYearYearIdCertificatesGetError = GenerateCertificatesApiV1AdminYearYearIdCertificatesGetErrors[keyof GenerateCertificatesApiV1AdminYearYearIdCertificatesGetErrors];
+
+export type GenerateCertificatesApiV1AdminYearYearIdCertificatesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: string;
+};
+
+export type GenerateCertificatesApiV1AdminYearYearIdCertificatesGetResponse = GenerateCertificatesApiV1AdminYearYearIdCertificatesGetResponses[keyof GenerateCertificatesApiV1AdminYearYearIdCertificatesGetResponses];
 
 export type SaveDayAttendanceApiV1AttendanceSavePostData = {
     body: SaveDayAttendanceRequest;

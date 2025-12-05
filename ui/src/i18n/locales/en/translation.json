@@ -240,5 +240,13 @@
   "All registered volunteers for this year": "All registered volunteers for this year",
   "results": "results",
   "Failed to load results": "Failed to load results",
-  "No volunteers found": "No volunteers found"
+  "No volunteers found": "No volunteers found",
+  "Hall Name": "Hall Name",
+  "Description": "Description",
+  "Add New Day": "Add New Day",
+  "Registration Status:": "Registration Status:",
+  "Halls": "Halls",
+  "Add Hall": "Add Hall",
+  "Position name is required": "Position name is required",
+  "Add New Hall": "Add New Hall"
 }

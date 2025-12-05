@@ -94,6 +94,8 @@ class Position(Base, TimestampMixin):
     can_desire: Mapped[bool] = mapped_column(Boolean, default=False)
     has_halls: Mapped[bool] = mapped_column(Boolean, default=False)
     is_manager: Mapped[bool] = mapped_column(Boolean, default=False)
+    score: Mapped[float] = mapped_column(Double, nullable=False, default=1.0, server_default="1.0")
+    description: Mapped[str | None] = mapped_column(String, nullable=True)
 
     user_days: Mapped[set[UserDay]] = relationship(
         back_populates="position", cascade="all, delete-orphan"

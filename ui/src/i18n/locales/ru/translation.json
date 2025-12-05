@@ -252,5 +252,7 @@
   "All registered volunteers for this year": "Все зарегистрированные волонтеры за этот год",
   "results": "результатов",
   "Failed to load results": "Не удалось загрузить результаты",
-  "No volunteers found": "Волонтеров не найдено"
+  "No volunteers found": "Волонтеров не найдено",
+  "Registration Status:": "Статус регистрации:",
+  "Position name is required": "Название позиции обязательно"
 }

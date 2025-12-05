@@ -7,6 +7,8 @@ class PositionIn(BaseModel):
     can_desire: bool
     has_halls: bool
     is_manager: bool
+    score: float = 1.0
+    description: str | None = None
 
 
 class PositionEditIn(BaseModel):
@@ -14,6 +16,8 @@ class PositionEditIn(BaseModel):
     can_desire: bool | None
     has_halls: bool | None
     is_manager: bool | None
+    score: float | None = None
+    description: str | None = None
 
 
 class PositionOut(PositionIn):

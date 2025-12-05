@@ -6,7 +6,7 @@ from sqlalchemy.orm import selectinload
 
 from volunteers.api.v1.admin.year.schemas import ExperienceItem
 from volunteers.bot.notify import Notifier
-from volunteers.core.experience import ATTENDANCE_MAP, get_position_multiplier
+from volunteers.core.experience import ATTENDANCE_MAP
 from volunteers.models import (
     ApplicationForm,
     Assessment,
@@ -244,6 +244,8 @@ class YearService(BaseService):
             can_desire=position_in.can_desire,
             has_halls=position_in.has_halls,
             is_manager=position_in.is_manager,
+            score=position_in.score,
+            description=position_in.description,
         )
         async with self.session_scope() as session:
             session.add(created_position)
@@ -270,6 +272,10 @@ class YearService(BaseService):
                 updated_position.has_halls = has_halls
             if (is_manager := position_edit_in.is_manager) is not None:
                 updated_position.is_manager = is_manager
+            if (score := position_edit_in.score) is not None:
+                updated_position.score = score
+            if position_edit_in.description is not None:
+                updated_position.description = position_edit_in.description
 
             await session.commit()
 
@@ -800,9 +806,9 @@ class YearService(BaseService):
                 for user_day in user_days:
                     day_score = user_day.day.score if user_day.day.score else 0.0
                     attendance_weight = ATTENDANCE_MAP.get(user_day.attendance, 0.0)
-                    position_mult = get_position_multiplier(user_day.position.name)
+                    position_score = user_day.position.score if user_day.position.score else 1.0
 
-                    attendance_experience_sum += day_score * attendance_weight * position_mult
+                    attendance_experience_sum += day_score * attendance_weight * position_score
 
                 # Average over number of mandatory days
                 mandatory_experience = attendance_experience_sum / mandatory_days_count
