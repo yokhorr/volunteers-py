@@ -66,7 +66,9 @@ function RouteComponent() {
     null,
   );
   const [newPositionName, setNewPositionName] = useState("");
+  const [newPositionTouched, setNewPositionTouched] = useState(false);
   const [editPositionName, setEditPositionName] = useState("");
+  const [editPositionTouched, setEditPositionTouched] = useState(false);
   const [newPositionCanDesire, setNewPositionCanDesire] = useState(false);
   const [editPositionCanDesire, setEditPositionCanDesire] = useState(false);
   const [newPositionHasHalls, setNewPositionHasHalls] = useState(false);
@@ -80,7 +82,9 @@ function RouteComponent() {
   const [isEditHallDialogOpen, setIsEditHallDialogOpen] = useState(false);
   const [editingHall, setEditingHall] = useState<HallOut | null>(null);
   const [newHallName, setNewHallName] = useState("");
+  const [newHallTouched, setNewHallTouched] = useState(false);
   const [editHallName, setEditHallName] = useState("");
+  const [editHallTouched, setEditHallTouched] = useState(false);
   const [newHallDescription, setNewHallDescription] = useState("");
   const [editHallDescription, setEditHallDescription] = useState("");
 
@@ -89,11 +93,15 @@ function RouteComponent() {
   const [isEditDayDialogOpen, setIsEditDayDialogOpen] = useState(false);
   const [editingDay, setEditingDay] = useState<DayOutAdmin | null>(null);
   const [newDayName, setNewDayName] = useState("");
+  const [newDayTouched, setNewDayTouched] = useState(false);
   const [editDayName, setEditDayName] = useState("");
+  const [editDayTouched, setEditDayTouched] = useState(false);
   const [newDayInformation, setNewDayInformation] = useState("");
   const [editDayInformation, setEditDayInformation] = useState("");
-  const [newDayScore, setNewDayScore] = useState(0);
-  const [editDayScore, setEditDayScore] = useState(0);
+  const [newDayScore, setNewDayScore] = useState("0");
+  const [newDayScoreTouched, setNewDayScoreTouched] = useState(false);
+  const [editDayScore, setEditDayScore] = useState("0");
+  const [editDayScoreTouched, setEditDayScoreTouched] = useState(false);
   const [newDayMandatory, setNewDayMandatory] = useState(false);
   const [editDayMandatory, setEditDayMandatory] = useState(false);
   const [newDayAssignmentPublished, setNewDayAssignmentPublished] =
@@ -103,6 +111,7 @@ function RouteComponent() {
 
   // Year settings state
   const [yearName, setYearName] = useState("");
+  const [yearNameTouched, setYearNameTouched] = useState(false);
   const [openForRegistration, setOpenForRegistration] = useState(false);
   const [isYearSettingsEditing, setIsYearSettingsEditing] = useState(false);
 
@@ -193,6 +202,7 @@ function RouteComponent() {
           onSuccess: () => {
             setIsAddDialogOpen(false);
             setNewPositionName("");
+            setNewPositionTouched(false);
             setNewPositionCanDesire(false);
             setNewPositionHasHalls(false);
             setNewPositionIsManager(false);
@@ -220,6 +230,7 @@ function RouteComponent() {
             setIsEditDialogOpen(false);
             setEditingPosition(null);
             setEditPositionName("");
+            setEditPositionTouched(false);
             setEditPositionCanDesire(false);
             setEditPositionHasHalls(false);
             setEditPositionIsManager(false);
@@ -252,6 +263,7 @@ function RouteComponent() {
           onSuccess: () => {
             setIsAddHallDialogOpen(false);
             setNewHallName("");
+            setNewHallTouched(false);
             setNewHallDescription("");
           },
         },
@@ -275,6 +287,7 @@ function RouteComponent() {
             setIsEditHallDialogOpen(false);
             setEditingHall(null);
             setEditHallName("");
+            setEditHallTouched(false);
             setEditHallDescription("");
           },
         },
@@ -292,13 +305,13 @@ function RouteComponent() {
   // Day management functions
   const handleAddDay = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newDayName.trim()) {
+    if (newDayName.trim() && newDayScore.trim()) {
       addDayMutation.mutate(
         {
           year_id: Number(yearId),
           name: newDayName.trim(),
           information: newDayInformation.trim(),
-          score: newDayScore,
+          score: Number(newDayScore),
           mandatory: newDayMandatory,
           assignment_published: newDayAssignmentPublished,
         },
@@ -307,7 +320,9 @@ function RouteComponent() {
             setIsAddDayDialogOpen(false);
             setNewDayName("");
             setNewDayInformation("");
-            setNewDayScore(0);
+            setNewDayScore("0");
+            setNewDayTouched(false);
+            setNewDayScoreTouched(false);
             setNewDayMandatory(false);
             setNewDayAssignmentPublished(false);
           },
@@ -318,7 +333,7 @@ function RouteComponent() {
 
   const handleEditDay = (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingDay && editDayName.trim()) {
+    if (editingDay && editDayName.trim() && editDayScore.trim()) {
       console.log("editingDay", editingDay);
       editDayMutation.mutate(
         {
@@ -327,7 +342,7 @@ function RouteComponent() {
           data: {
             name: editDayName.trim(),
             information: editDayInformation.trim(),
-            score: editDayScore,
+            score: Number(editDayScore),
             mandatory: editDayMandatory,
             assignment_published: editDayAssignmentPublished,
           },
@@ -338,7 +353,9 @@ function RouteComponent() {
             setEditingDay(null);
             setEditDayName("");
             setEditDayInformation("");
-            setEditDayScore(0);
+            setEditDayScore("0");
+            setEditDayTouched(false);
+            setEditDayScoreTouched(false);
             setEditDayMandatory(false);
             setEditDayAssignmentPublished(false);
           },
@@ -351,7 +368,7 @@ function RouteComponent() {
     setEditingDay(day);
     setEditDayName(day.name);
     setEditDayInformation(day.information);
-    setEditDayScore(day.score ?? 0);
+    setEditDayScore(String(day.score ?? "0"));
     setEditDayMandatory(day.mandatory);
     setEditDayAssignmentPublished(day.assignment_published);
     setIsEditDayDialogOpen(true);
@@ -448,8 +465,13 @@ function RouteComponent() {
               label={t("Year Name")}
               value={yearName}
               onChange={(e) => setYearName(e.target.value)}
-              error={editYearMutation.isError}
-              helperText={editYearMutation.error?.message}
+              onBlur={() => setYearNameTouched(true)}
+              error={yearNameTouched && !yearName.trim()}
+              helperText={
+                yearNameTouched && !yearName.trim()
+                  ? t("Year name is required")
+                  : editYearMutation.error?.message
+              }
               disabled={editYearMutation.isPending}
               sx={{ mb: 2 }}
             />
@@ -537,11 +559,13 @@ function RouteComponent() {
             {positions.map((position) => (
               <ListItem
                 key={position.position_id}
+                onClick={() => openEditDialog(position)}
                 sx={{
                   border: 1,
                   borderColor: "divider",
                   borderRadius: 1,
                   mb: 1,
+                  cursor: "pointer",
                   "&:hover": {
                     backgroundColor: "action.hover",
                   },
@@ -577,7 +601,10 @@ function RouteComponent() {
                   }
                 />
                 <IconButton
-                  onClick={() => openEditDialog(position)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    openEditDialog(position);
+                  }}
                   color="primary"
                   size="small"
                 >
@@ -620,11 +647,13 @@ function RouteComponent() {
             {halls.map((hall: HallOut) => (
               <ListItem
                 key={hall.hall_id}
+                onClick={() => openEditHallDialog(hall)}
                 sx={{
                   border: "1px solid",
                   borderColor: "divider",
                   borderRadius: 1,
                   mb: 1,
+                  cursor: "pointer",
                   "&:hover": {
                     backgroundColor: "action.hover",
                   },
@@ -635,7 +664,10 @@ function RouteComponent() {
                   secondary={hall.description || t("No description")}
                 />
                 <IconButton
-                  onClick={() => openEditHallDialog(hall)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    openEditHallDialog(hall);
+                  }}
                   color="primary"
                   size="small"
                 >
@@ -678,11 +710,13 @@ function RouteComponent() {
             {days.map((day) => (
               <ListItem
                 key={day.day_id}
+                onClick={() => openEditDayDialog(day)}
                 sx={{
                   border: "1px solid",
                   borderColor: "divider",
                   borderRadius: 1,
                   mb: 1,
+                  cursor: "pointer",
                   "&:hover": {
                     backgroundColor: "action.hover",
                   },
@@ -717,7 +751,10 @@ function RouteComponent() {
                   secondary={day.information}
                 />
                 <IconButton
-                  onClick={() => openEditDayDialog(day)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    openEditDayDialog(day);
+                  }}
                   color="primary"
                   size="small"
                 >
@@ -751,8 +788,13 @@ function RouteComponent() {
               variant="outlined"
               value={newPositionName}
               onChange={(e) => setNewPositionName(e.target.value)}
-              error={addPositionMutation.isError}
-              helperText={addPositionMutation.error?.message}
+              onBlur={() => setNewPositionTouched(true)}
+              error={newPositionTouched && !newPositionName.trim()}
+              helperText={
+                newPositionTouched && !newPositionName.trim()
+                  ? t("Position name is required")
+                  : addPositionMutation.error?.message
+              }
               disabled={addPositionMutation.isPending}
             />
             <FormControlLabel
@@ -829,8 +871,13 @@ function RouteComponent() {
               variant="outlined"
               value={editPositionName}
               onChange={(e) => setEditPositionName(e.target.value)}
-              error={editPositionMutation.isError}
-              helperText={editPositionMutation.error?.message}
+              onBlur={() => setEditPositionTouched(true)}
+              error={editPositionTouched && !editPositionName.trim()}
+              helperText={
+                editPositionTouched && !editPositionName.trim()
+                  ? t("Position name is required")
+                  : editPositionMutation.error?.message
+              }
               disabled={editPositionMutation.isPending}
             />
             <FormControlLabel
@@ -907,8 +954,13 @@ function RouteComponent() {
               variant="outlined"
               value={newHallName}
               onChange={(e) => setNewHallName(e.target.value)}
-              error={addHallMutation.isError}
-              helperText={addHallMutation.error?.message}
+              onBlur={() => setNewHallTouched(true)}
+              error={newHallTouched && !newHallName.trim()}
+              helperText={
+                newHallTouched && !newHallName.trim()
+                  ? t("Hall name is required")
+                  : addHallMutation.error?.message
+              }
               disabled={addHallMutation.isPending}
               required
             />
@@ -965,8 +1017,13 @@ function RouteComponent() {
               variant="outlined"
               value={editHallName}
               onChange={(e) => setEditHallName(e.target.value)}
-              error={editHallMutation.isError}
-              helperText={editHallMutation.error?.message}
+              onBlur={() => setEditHallTouched(true)}
+              error={editHallTouched && !editHallName.trim()}
+              helperText={
+                editHallTouched && !editHallName.trim()
+                  ? t("Hall name is required")
+                  : editHallMutation.error?.message
+              }
               disabled={editHallMutation.isPending}
               required
             />
@@ -1024,8 +1081,13 @@ function RouteComponent() {
               variant="outlined"
               value={newDayName}
               onChange={(e) => setNewDayName(e.target.value)}
-              error={addDayMutation.isError}
-              helperText={addDayMutation.error?.message}
+              onBlur={() => setNewDayTouched(true)}
+              error={newDayTouched && !newDayName.trim()}
+              helperText={
+                newDayTouched && !newDayName.trim()
+                  ? t("Day name is required")
+                  : addDayMutation.error?.message
+              }
               disabled={addDayMutation.isPending}
               required
             />
@@ -1047,14 +1109,21 @@ function RouteComponent() {
             />
             <TextField
               margin="dense"
-              label={t("Score")}
+              label={`${t("Score")} *`}
               fullWidth
               variant="outlined"
               type="number"
               value={newDayScore}
-              onChange={(e) => setNewDayScore(Number(e.target.value))}
+              onChange={(e) => setNewDayScore(e.target.value)}
+              onBlur={() => setNewDayScoreTouched(true)}
+              error={newDayScoreTouched && !newDayScore.trim()}
+              helperText={
+                newDayScoreTouched && !newDayScore.trim()
+                  ? t("Score is required")
+                  : ""
+              }
               disabled={addDayMutation.isPending}
-              inputProps={{ step: "0.1" }}
+              inputProps={{ step: "1" }}
             />
             <FormControlLabel
               control={
@@ -1091,7 +1160,11 @@ function RouteComponent() {
             <Button
               type="submit"
               variant="contained"
-              disabled={!newDayName.trim() || addDayMutation.isPending}
+              disabled={
+                !newDayName.trim() ||
+                !newDayScore.trim() ||
+                addDayMutation.isPending
+              }
             >
               {addDayMutation.isPending ? t("Adding...") : t("Add Day")}
             </Button>
@@ -1117,8 +1190,13 @@ function RouteComponent() {
               variant="outlined"
               value={editDayName}
               onChange={(e) => setEditDayName(e.target.value)}
-              error={editDayMutation.isError}
-              helperText={editDayMutation.error?.message}
+              onBlur={() => setEditDayTouched(true)}
+              error={editDayTouched && !editDayName.trim()}
+              helperText={
+                editDayTouched && !editDayName.trim()
+                  ? t("Day name is required")
+                  : editDayMutation.error?.message
+              }
               disabled={editDayMutation.isPending}
               required
             />
@@ -1140,14 +1218,21 @@ function RouteComponent() {
             />
             <TextField
               margin="dense"
-              label={t("Score")}
+              label={`${t("Score")} *`}
               fullWidth
               variant="outlined"
               type="number"
               value={editDayScore}
-              onChange={(e) => setEditDayScore(Number(e.target.value))}
+              onChange={(e) => setEditDayScore(e.target.value)}
+              onBlur={() => setEditDayScoreTouched(true)}
+              error={editDayScoreTouched && !editDayScore.trim()}
+              helperText={
+                editDayScoreTouched && !editDayScore.trim()
+                  ? t("Score is required")
+                  : ""
+              }
               disabled={editDayMutation.isPending}
-              inputProps={{ step: "0.1" }}
+              inputProps={{ step: "1" }}
             />
             <FormControlLabel
               control={
@@ -1184,7 +1269,11 @@ function RouteComponent() {
             <Button
               type="submit"
               variant="contained"
-              disabled={!editDayName.trim() || editDayMutation.isPending}
+              disabled={
+                !editDayName.trim() ||
+                !editDayScore.trim() ||
+                editDayMutation.isPending
+              }
             >
               {editDayMutation.isPending ? t("Saving...") : t("Save Changes")}
             </Button>

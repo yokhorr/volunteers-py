@@ -137,6 +137,7 @@ function RouteComponent() {
             name="first_name_ru"
             value={formik.values.first_name_ru || ""}
             onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             error={
               formik.touched.first_name_ru &&
               Boolean(formik.errors.first_name_ru)
@@ -154,6 +155,7 @@ function RouteComponent() {
             name="last_name_ru"
             value={formik.values.last_name_ru || ""}
             onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             error={
               formik.touched.last_name_ru && Boolean(formik.errors.last_name_ru)
             }
@@ -170,6 +172,7 @@ function RouteComponent() {
             name="patronymic_ru"
             value={formik.values.patronymic_ru || ""}
             onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             error={
               formik.touched.patronymic_ru &&
               Boolean(formik.errors.patronymic_ru)
@@ -186,6 +189,7 @@ function RouteComponent() {
             name="first_name_en"
             value={formik.values.first_name_en || ""}
             onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             error={
               formik.touched.first_name_en &&
               Boolean(formik.errors.first_name_en)
@@ -203,6 +207,7 @@ function RouteComponent() {
             name="last_name_en"
             value={formik.values.last_name_en || ""}
             onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             error={
               formik.touched.last_name_en && Boolean(formik.errors.last_name_en)
             }
@@ -225,6 +230,7 @@ function RouteComponent() {
                 e.target.value ? Number(e.target.value) : null,
               )
             }
+            onBlur={formik.handleBlur}
             error={formik.touched.isu_id && Boolean(formik.errors.isu_id)}
             helperText={formik.touched.isu_id && formik.errors.isu_id}
             sx={{ mb: 2 }}
@@ -236,6 +242,7 @@ function RouteComponent() {
             name="phone"
             value={formik.values.phone || ""}
             onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             error={formik.touched.phone && Boolean(formik.errors.phone)}
             helperText={formik.touched.phone && formik.errors.phone}
             sx={{ mb: 2 }}
@@ -248,6 +255,7 @@ function RouteComponent() {
             type="email"
             value={formik.values.email || ""}
             onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             error={formik.touched.email && Boolean(formik.errors.email)}
             helperText={formik.touched.email && formik.errors.email}
             sx={{ mb: 2 }}
@@ -260,6 +268,7 @@ function RouteComponent() {
             name="gender"
             value={formik.values.gender || ""}
             onChange={formik.handleChange}
+            onBlur={() => formik.setFieldTouched("gender", true)}
             sx={{ mb: 2 }}
           >
             <MenuItem value="male">{t("Male")}</MenuItem>
@@ -272,6 +281,7 @@ function RouteComponent() {
             name="telegram_username"
             value={formik.values.telegram_username || ""}
             onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             error={
               formik.touched.telegram_username &&
               Boolean(formik.errors.telegram_username)
@@ -295,6 +305,7 @@ function RouteComponent() {
                 e.target.value ? Number(e.target.value) : null,
               )
             }
+            onBlur={formik.handleBlur}
             error={
               formik.touched.telegram_id && Boolean(formik.errors.telegram_id)
             }
