@@ -48,6 +48,7 @@ export type AddPositionRequest = {
     can_desire?: boolean;
     has_halls?: boolean;
     is_manager?: boolean;
+    save_for_next_year?: boolean;
     score?: number;
     description?: string | null;
 };
@@ -224,6 +225,7 @@ export type EditPositionRequest = {
     can_desire?: boolean | null;
     has_halls?: boolean | null;
     is_manager?: boolean | null;
+    save_for_next_year?: boolean | null;
     score?: number | null;
     description?: string | null;
 };
@@ -287,6 +289,10 @@ export type PositionOut = {
     can_desire: boolean;
     has_halls: boolean;
     is_manager: boolean;
+    /**
+     * Save this position for next year when creating a new year
+     */
+    save_for_next_year?: boolean;
     score?: number;
     description?: string | null;
     position_id: number;

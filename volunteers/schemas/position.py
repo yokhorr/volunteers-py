@@ -7,6 +7,7 @@ class PositionIn(BaseModel):
     can_desire: bool
     has_halls: bool
     is_manager: bool
+    save_for_next_year: bool = False
     score: float = 1.0
     description: str | None = None
 
@@ -16,6 +17,7 @@ class PositionEditIn(BaseModel):
     can_desire: bool | None
     has_halls: bool | None
     is_manager: bool | None
+    save_for_next_year: bool | None = None
     score: float | None = None
     description: str | None = None
 

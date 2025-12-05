@@ -48,7 +48,10 @@ async def add_year(
     _: Annotated[User, Depends(with_admin)],
     year_service: Annotated[YearService, Depends(Provide[Container.year_service])],
 ) -> AddYearResponse:
-    year_in = YearIn(year_name=request.year_name, open_for_registration=False)
+    year_in = YearIn(
+        year_name=request.year_name,
+        open_for_registration=False,
+    )
     year = await year_service.add_year(year_in=year_in)
     logger.info(f"Added year {request.year_name}")
 
@@ -125,6 +128,7 @@ async def get_year_positions(
             can_desire=p.can_desire,
             has_halls=p.has_halls,
             is_manager=p.is_manager,
+            save_for_next_year=p.save_for_next_year,
             score=p.score,
             description=p.description,
         )
@@ -175,6 +179,7 @@ async def get_registration_forms(
                         can_desire=p.can_desire,
                         has_halls=p.has_halls,
                         is_manager=p.is_manager,
+                        save_for_next_year=p.save_for_next_year,
                     )
                     for p in form.desired_positions
                 ],

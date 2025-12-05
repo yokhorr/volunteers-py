@@ -95,6 +95,7 @@ class Position(Base, TimestampMixin):
     has_halls: Mapped[bool] = mapped_column(Boolean, default=False)
     is_manager: Mapped[bool] = mapped_column(Boolean, default=False)
     score: Mapped[float] = mapped_column(Double, nullable=False, default=1.0, server_default="1.0")
+    save_for_next_year: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     description: Mapped[str | None] = mapped_column(String, nullable=True)
 
     user_days: Mapped[set[UserDay]] = relationship(

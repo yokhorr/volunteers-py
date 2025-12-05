@@ -216,6 +216,63 @@ class YearService(BaseService):
         async with self.session_scope() as session:
             session.add(created_year)
             await session.commit()
+            # If requested, copy positions from previous year that were marked to be saved
+            prev_candidate = await session.execute(
+                select(Year).where(Year.id < created_year.id).order_by(Year.id.desc()).limit(1)
+            )
+            prev_year_obj = prev_candidate.scalar_one_or_none()
+            if not prev_year_obj:
+                self.logger.info(
+                    f"No previous year found for year {created_year.id}; skipping position copy"
+                )
+            else:
+                prev_id = prev_year_obj.id
+                self.logger.info(
+                    f"Auto-detected previous_year_id={prev_id} for year {created_year.id}"
+                )
+
+                # Fetch positions from previous year marked to be saved for next year
+                prev_positions_result = await session.execute(
+                    select(Position).where(
+                        and_(Position.year_id == prev_id, Position.save_for_next_year.is_(True))
+                    )
+                )
+                prev_positions = prev_positions_result.scalars().all()
+                self.logger.info(
+                    f"Found {len(prev_positions)} positions in year {prev_id} marked to save for next year"
+                )
+
+                for p in prev_positions:
+                    try:
+                        new_pos = Position(
+                            year_id=created_year.id,
+                            name=p.name,
+                            can_desire=p.can_desire,
+                            has_halls=p.has_halls,
+                            is_manager=p.is_manager,
+                            score=p.score,
+                            description=p.description,
+                            save_for_next_year=bool(p.save_for_next_year),
+                        )
+                        session.add(new_pos)
+                        self.logger.debug(
+                            f"Queued copy of position '{p.name}' (id={p.id}) from year {prev_id} to year {created_year.id}"
+                        )
+                    except Exception:  # pragma: no cover - defensive logging
+                        # If any issue occurs during copy (e.g., uniqueness constraint), log details and continue
+                        self.logger.exception(
+                            f"Failed to prepare copy for position {p.name} (id={getattr(p, 'id', None)}) from year {prev_id}"
+                        )
+
+            # Commit copied positions (if any)
+            try:
+                await session.commit()
+            except Exception:  # pragma: no cover - database may reject some inserts
+                # Log full details of the failure and rollback to keep session consistent
+                self.logger.exception(
+                    f"Failed to commit copied positions for year {created_year.id}"
+                )
+                await session.rollback()
         return created_year
 
     async def edit_year_by_year_id(self, year_id: int, year_edit_in: YearEditIn) -> None:
@@ -252,20 +309,13 @@ class YearService(BaseService):
             if existing.scalar_one_or_none() is not None:
                 raise PositionAlreadyExists()
 
-            # Удалите эту часть:
-            # # Guard against current global unique constraint on name (DB may still enforce this)
-            # existing_global = await session.execute(
-            #     select(Position).where(Position.name == position_in.name)
-            # )
-            # if existing_global.scalar_one_or_none() is not None:
-            #     raise DomainError("Position with this name already exists")
-
             created_position = Position(
                 year_id=position_in.year_id,
                 name=position_in.name,
                 can_desire=position_in.can_desire,
                 has_halls=position_in.has_halls,
                 is_manager=position_in.is_manager,
+                save_for_next_year=position_in.save_for_next_year,
                 score=position_in.score,
                 description=position_in.description,
             )
@@ -311,6 +361,8 @@ class YearService(BaseService):
                 updated_position.is_manager = is_manager
             if (score := position_edit_in.score) is not None:
                 updated_position.score = score
+            if (save_flag := position_edit_in.save_for_next_year) is not None:
+                updated_position.save_for_next_year = save_flag
             if position_edit_in.description is not None:
                 updated_position.description = position_edit_in.description
 
@@ -796,7 +848,7 @@ class YearService(BaseService):
         Formula:
         experience = (
             sum(day.score * attendance_map[attendance] * position_multiplier[position]
-                for day in mandatory_days) / number_of_mandatory_days
+                for day in mandatory_days) / number of mandatory_days
         ) + sum(assessment.value for all assessments in year)
 
         Args:

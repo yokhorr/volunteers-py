@@ -75,6 +75,10 @@ function RouteComponent() {
   const [editPositionHasHalls, setEditPositionHasHalls] = useState(false);
   const [newPositionIsManager, setNewPositionIsManager] = useState(false);
   const [editPositionIsManager, setEditPositionIsManager] = useState(false);
+  const [newPositionSaveForNextYear, setNewPositionSaveForNextYear] =
+    useState(false);
+  const [editPositionSaveForNextYear, setEditPositionSaveForNextYear] =
+    useState(false);
   const [newPositionScore, setNewPositionScore] = useState("1.0");
   const [newPositionScoreTouched, setNewPositionScoreTouched] = useState(false);
   const [editPositionScore, setEditPositionScore] = useState("1.0");
@@ -244,6 +248,7 @@ function RouteComponent() {
         can_desire: newPositionCanDesire,
         has_halls: newPositionHasHalls,
         is_manager: newPositionIsManager,
+        save_for_next_year: newPositionSaveForNextYear,
         score: scoreValue,
         description: newPositionDescription.trim() || null,
       },
@@ -257,6 +262,7 @@ function RouteComponent() {
 
   const handleEditPosition = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!editingPosition) return;
     setEditPositionScoreError("");
     setEditPositionError(null);
 
@@ -293,12 +299,13 @@ function RouteComponent() {
 
     editPositionMutation.mutate(
       {
-        positionId: editingPosition!.position_id,
+        positionId: editingPosition.position_id,
         data: {
           name: trimmedName,
           can_desire: editPositionCanDesire,
           has_halls: editPositionHasHalls,
           is_manager: editPositionIsManager,
+          save_for_next_year: editPositionSaveForNextYear,
           score: scoreValue,
           description: editPositionDescription.trim() || null,
         },
@@ -317,6 +324,7 @@ function RouteComponent() {
     setEditPositionCanDesire(position.can_desire);
     setEditPositionHasHalls(position.has_halls);
     setEditPositionIsManager(position.is_manager);
+    setEditPositionSaveForNextYear(!!position.save_for_next_year);
     setEditPositionScore(String(position.score ?? "1.0"));
     setEditPositionDescription(position.description || "");
     setIsEditDialogOpen(true);
@@ -432,6 +440,7 @@ function RouteComponent() {
     setNewPositionCanDesire(false);
     setNewPositionHasHalls(false);
     setNewPositionIsManager(false);
+    setNewPositionSaveForNextYear(false);
     setNewPositionScore("1.0");
     setNewPositionScoreTouched(false);
     setNewPositionDescription("");
@@ -446,6 +455,7 @@ function RouteComponent() {
     setEditPositionCanDesire(false);
     setEditPositionHasHalls(false);
     setEditPositionIsManager(false);
+    setEditPositionSaveForNextYear(false);
     setEditPositionScore("1.0");
     setEditPositionScoreTouched(false);
     setEditPositionDescription("");
@@ -986,6 +996,19 @@ function RouteComponent() {
               label={t("Is manager")}
               sx={{ mt: 1 }}
             />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={newPositionSaveForNextYear}
+                  onChange={(e) => {
+                    setNewPositionSaveForNextYear(e.target.checked);
+                  }}
+                  disabled={addPositionMutation.isPending}
+                />
+              }
+              label={t("Save for next year")}
+              sx={{ mt: 1 }}
+            />
           </DialogContent>
           <DialogActions>
             <Button
@@ -1118,6 +1141,19 @@ function RouteComponent() {
                 />
               }
               label={t("Is manager")}
+              sx={{ mt: 1 }}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={editPositionSaveForNextYear}
+                  onChange={(e) => {
+                    setEditPositionSaveForNextYear(e.target.checked);
+                  }}
+                  disabled={editPositionMutation.isPending}
+                />
+              }
+              label={t("Save for next year")}
               sx={{ mt: 1 }}
             />
           </DialogContent>

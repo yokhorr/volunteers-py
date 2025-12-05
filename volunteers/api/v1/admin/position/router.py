@@ -43,6 +43,7 @@ async def add_position(
             can_desire=request.can_desire,
             has_halls=request.has_halls,
             is_manager=request.is_manager,
+            save_for_next_year=request.save_for_next_year,
             score=request.score,
             description=request.description,
         )
@@ -79,6 +80,7 @@ async def edit_position(
             can_desire=request.can_desire,
             has_halls=request.has_halls,
             is_manager=request.is_manager,
+            save_for_next_year=request.save_for_next_year,
             score=request.score,
             description=request.description,
         )
