@@ -44,6 +44,7 @@ import {
   useYears,
 } from "@/data";
 import { downloadFile } from "@/utils/download";
+import { submitOnCtrlEnter } from "@/utils/formShortcuts";
 import { shouldBeAdmin } from "@/utils/should-be-logged-in";
 
 export const Route = createFileRoute("/_logged-in/$yearId/settings")({
@@ -918,6 +919,11 @@ function RouteComponent() {
               variant="outlined"
               value={newHallDescription}
               onChange={(e) => setNewHallDescription(e.target.value)}
+              onKeyDown={(event) =>
+                submitOnCtrlEnter(event, {
+                  canSubmit: !!newHallName.trim() && !addHallMutation.isPending,
+                })
+              }
               multiline
               rows={3}
               disabled={addHallMutation.isPending}
@@ -971,6 +977,12 @@ function RouteComponent() {
               variant="outlined"
               value={editHallDescription}
               onChange={(e) => setEditHallDescription(e.target.value)}
+              onKeyDown={(event) =>
+                submitOnCtrlEnter(event, {
+                  canSubmit:
+                    !!editHallName.trim() && !editHallMutation.isPending,
+                })
+              }
               multiline
               rows={3}
               disabled={editHallMutation.isPending}
@@ -1024,6 +1036,11 @@ function RouteComponent() {
               variant="outlined"
               value={newDayInformation}
               onChange={(e) => setNewDayInformation(e.target.value)}
+              onKeyDown={(event) =>
+                submitOnCtrlEnter(event, {
+                  canSubmit: !!newDayName.trim() && !addDayMutation.isPending,
+                })
+              }
               multiline
               rows={3}
               disabled={addDayMutation.isPending}
@@ -1112,6 +1129,11 @@ function RouteComponent() {
               variant="outlined"
               value={editDayInformation}
               onChange={(e) => setEditDayInformation(e.target.value)}
+              onKeyDown={(event) =>
+                submitOnCtrlEnter(event, {
+                  canSubmit: !!editDayName.trim() && !editDayMutation.isPending,
+                })
+              }
               multiline
               rows={3}
               disabled={editDayMutation.isPending}
