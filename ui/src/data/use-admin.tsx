@@ -144,11 +144,24 @@ export const useAddPosition = () => {
       });
       return response.data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.admin.positions.all(),
       });
       if (variables.year_id) {
+        // Force refetch to ensure fresh data
+        await queryClient.fetchQuery({
+          queryKey: queryKeys.admin.positions.year(variables.year_id),
+          queryFn: async () => {
+            const resp = await getYearPositionsApiV1AdminYearYearIdPositionsGet(
+              {
+                path: { year_id: Number(variables.year_id) },
+                throwOnError: true,
+              },
+            );
+            return resp.data;
+          },
+        });
         queryClient.invalidateQueries({
           queryKey: queryKeys.year.all(variables.year_id),
         });
@@ -178,14 +191,27 @@ export const useEditPosition = (yearId: string | number) => {
       });
       return response.data;
     },
-    onSuccess: (_) => {
+    onSuccess: async (_) => {
+      // Invalidate wide caches
       queryClient.invalidateQueries({
         queryKey: queryKeys.admin.positions.all(),
       });
-      // Invalidate year form since position might be used there
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.year.form(yearId),
+      // Force refetch positions for the year to ensure fresh data
+      await queryClient.fetchQuery({
+        queryKey: queryKeys.admin.positions.year(yearId),
+        queryFn: async () => {
+          const resp = await getYearPositionsApiV1AdminYearYearIdPositionsGet({
+            path: { year_id: Number(yearId) },
+            throwOnError: true,
+          });
+          return resp.data;
+        },
       });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.positions.year(yearId),
+      });
+      // Invalidate year form since position might be used there
+      queryClient.invalidateQueries({ queryKey: queryKeys.year.form(yearId) });
     },
   });
 };

@@ -97,7 +97,8 @@ class YearService(BaseService):
             result = await session.execute(
                 select(Position).where(Position.year_id == year_id).order_by(Position.id)
             )
-            return list(result.scalars().all())
+            positions = list(result.scalars().all())
+            return positions
 
     async def get_days_by_year_id(self, year_id: int) -> list[Day]:
         async with self.session_scope() as session:
@@ -255,6 +256,9 @@ class YearService(BaseService):
     async def edit_position_by_position_id(
         self, position_id: int, position_edit_in: PositionEditIn
     ) -> None:
+        self.logger.info(
+            f"Editing position {position_id} with data: {position_edit_in.model_dump()}"
+        )
         async with self.session_scope() as session:
             existing_position = await session.execute(
                 select(Position).where(Position.id == position_id)
@@ -278,6 +282,7 @@ class YearService(BaseService):
                 updated_position.description = position_edit_in.description
 
             await session.commit()
+            self.logger.info(f"Position {position_id} updated successfully")
 
     async def add_day(self, day_in: DayIn) -> Day:
         created_day = Day(

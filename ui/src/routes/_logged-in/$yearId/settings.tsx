@@ -82,6 +82,8 @@ function RouteComponent() {
     useState(false);
   const [newPositionDescription, setNewPositionDescription] = useState("");
   const [editPositionDescription, setEditPositionDescription] = useState("");
+  const [newPositionScoreError, setNewPositionScoreError] = useState("");
+  const [editPositionScoreError, setEditPositionScoreError] = useState("");
   const [exportError, setExportError] = useState<string | null>(null);
 
   // Hall management state
@@ -196,7 +198,14 @@ function RouteComponent() {
 
   const handleAddPosition = (e: React.FormEvent) => {
     e.preventDefault();
+    setNewPositionScoreError("");
     if (newPositionName.trim() && newPositionScore.trim()) {
+      const scoreValue = Number(newPositionScore);
+      if (Number.isNaN(scoreValue)) {
+        setNewPositionScoreError(t("Score must be a valid number"));
+        return;
+      }
+
       addPositionMutation.mutate(
         {
           year_id: Number(yearId),
@@ -204,7 +213,7 @@ function RouteComponent() {
           can_desire: newPositionCanDesire,
           has_halls: newPositionHasHalls,
           is_manager: newPositionIsManager,
-          score: Number(newPositionScore),
+          score: scoreValue,
           description: newPositionDescription.trim() || null,
         },
         {
@@ -218,11 +227,18 @@ function RouteComponent() {
 
   const handleEditPosition = (e: React.FormEvent) => {
     e.preventDefault();
+    setEditPositionScoreError("");
     if (
       editingPosition &&
       editPositionName.trim() &&
       editPositionScore.trim()
     ) {
+      const scoreValue = Number(editPositionScore);
+      if (Number.isNaN(scoreValue)) {
+        setEditPositionScoreError(t("Score must be a valid number"));
+        return;
+      }
+
       editPositionMutation.mutate(
         {
           positionId: editingPosition.position_id,
@@ -231,7 +247,7 @@ function RouteComponent() {
             can_desire: editPositionCanDesire,
             has_halls: editPositionHasHalls,
             is_manager: editPositionIsManager,
-            score: Number(editPositionScore),
+            score: scoreValue,
             description: editPositionDescription.trim() || null,
           },
         },
@@ -812,7 +828,7 @@ function RouteComponent() {
       {/* Add Position Dialog */}
       <Dialog
         open={isAddDialogOpen}
-        onClose={(...args: any[]) => {
+        onClose={(...args: unknown[]) => {
           const reason = args[1] as string | undefined;
           if (reason === "escapeKeyDown") {
             closeAddDialogSimple();
@@ -842,6 +858,44 @@ function RouteComponent() {
                   : addPositionMutation.error?.message
               }
               disabled={addPositionMutation.isPending}
+            />
+            <TextField
+              margin="dense"
+              label={t("Description")}
+              fullWidth
+              variant="outlined"
+              value={newPositionDescription}
+              onChange={(e) => setNewPositionDescription(e.target.value)}
+              onKeyDown={(event) =>
+                submitOnCtrlEnter(event, {
+                  canSubmit:
+                    !!newPositionName.trim() && !addPositionMutation.isPending,
+                })
+              }
+              multiline
+              rows={3}
+              disabled={addPositionMutation.isPending}
+            />
+            <TextField
+              margin="dense"
+              label={`${t("Score")} *`}
+              fullWidth
+              variant="outlined"
+              type="number"
+              value={newPositionScore}
+              onChange={(e) => setNewPositionScore(e.target.value)}
+              onBlur={() => setNewPositionScoreTouched(true)}
+              error={
+                newPositionScoreTouched &&
+                (!newPositionScore.trim() || !!newPositionScoreError)
+              }
+              helperText={
+                newPositionScoreTouched && !newPositionScore.trim()
+                  ? t("Score is required")
+                  : newPositionScoreError
+              }
+              disabled={addPositionMutation.isPending}
+              inputProps={{ step: "0.1" }}
             />
             <FormControlLabel
               control={
@@ -876,41 +930,6 @@ function RouteComponent() {
               label={t("Is manager")}
               sx={{ mt: 1 }}
             />
-            <TextField
-              margin="dense"
-              label={t("Description")}
-              fullWidth
-              variant="outlined"
-              value={newPositionDescription}
-              onChange={(e) => setNewPositionDescription(e.target.value)}
-              onKeyDown={(event) =>
-                submitOnCtrlEnter(event, {
-                  canSubmit:
-                    !!newPositionName.trim() && !addPositionMutation.isPending,
-                })
-              }
-              multiline
-              rows={3}
-              disabled={addPositionMutation.isPending}
-            />
-            <TextField
-              margin="dense"
-              label={`${t("Score")} *`}
-              fullWidth
-              variant="outlined"
-              type="number"
-              value={newPositionScore}
-              onChange={(e) => setNewPositionScore(e.target.value)}
-              onBlur={() => setNewPositionScoreTouched(true)}
-              error={newPositionScoreTouched && !newPositionScore.trim()}
-              helperText={
-                newPositionScoreTouched && !newPositionScore.trim()
-                  ? t("Score is required")
-                  : ""
-              }
-              disabled={addPositionMutation.isPending}
-              inputProps={{ step: "0.1" }}
-            />
           </DialogContent>
           <DialogActions>
             <Button
@@ -939,7 +958,7 @@ function RouteComponent() {
       {/* Edit Position Dialog */}
       <Dialog
         open={isEditDialogOpen}
-        onClose={(...args: any[]) => {
+        onClose={(...args: unknown[]) => {
           const reason = args[1] as string | undefined;
           if (reason === "escapeKeyDown") {
             closeEditDialogSimple();
@@ -969,6 +988,45 @@ function RouteComponent() {
                   : editPositionMutation.error?.message
               }
               disabled={editPositionMutation.isPending}
+            />
+            <TextField
+              margin="dense"
+              label={t("Description")}
+              fullWidth
+              variant="outlined"
+              value={editPositionDescription}
+              onChange={(e) => setEditPositionDescription(e.target.value)}
+              onKeyDown={(event) =>
+                submitOnCtrlEnter(event, {
+                  canSubmit:
+                    !!editPositionName.trim() &&
+                    !editPositionMutation.isPending,
+                })
+              }
+              multiline
+              rows={3}
+              disabled={editPositionMutation.isPending}
+            />
+            <TextField
+              margin="dense"
+              label={`${t("Score")} *`}
+              fullWidth
+              variant="outlined"
+              type="number"
+              value={editPositionScore}
+              onChange={(e) => setEditPositionScore(e.target.value)}
+              onBlur={() => setEditPositionScoreTouched(true)}
+              error={
+                editPositionScoreTouched &&
+                (!editPositionScore.trim() || !!editPositionScoreError)
+              }
+              helperText={
+                editPositionScoreTouched && !editPositionScore.trim()
+                  ? t("Score is required")
+                  : editPositionScoreError
+              }
+              disabled={editPositionMutation.isPending}
+              inputProps={{ step: "0.1" }}
             />
             <FormControlLabel
               control={
@@ -1003,42 +1061,6 @@ function RouteComponent() {
               label={t("Is manager")}
               sx={{ mt: 1 }}
             />
-            <TextField
-              margin="dense"
-              label={t("Description")}
-              fullWidth
-              variant="outlined"
-              value={editPositionDescription}
-              onChange={(e) => setEditPositionDescription(e.target.value)}
-              onKeyDown={(event) =>
-                submitOnCtrlEnter(event, {
-                  canSubmit:
-                    !!editPositionName.trim() &&
-                    !editPositionMutation.isPending,
-                })
-              }
-              multiline
-              rows={3}
-              disabled={editPositionMutation.isPending}
-            />
-            <TextField
-              margin="dense"
-              label={`${t("Score")} *`}
-              fullWidth
-              variant="outlined"
-              type="number"
-              value={editPositionScore}
-              onChange={(e) => setEditPositionScore(e.target.value)}
-              onBlur={() => setEditPositionScoreTouched(true)}
-              error={editPositionScoreTouched && !editPositionScore.trim()}
-              helperText={
-                editPositionScoreTouched && !editPositionScore.trim()
-                  ? t("Score is required")
-                  : ""
-              }
-              disabled={editPositionMutation.isPending}
-              inputProps={{ step: "0.1" }}
-            />
           </DialogContent>
           <DialogActions>
             <Button
@@ -1067,7 +1089,7 @@ function RouteComponent() {
       {/* Add Hall Dialog */}
       <Dialog
         open={isAddHallDialogOpen}
-        onClose={(...args: any[]) => {
+        onClose={(...args: unknown[]) => {
           const reason = args[1] as string | undefined;
           if (reason === "escapeKeyDown") {
             closeAddHallDialogSimple();
@@ -1137,7 +1159,7 @@ function RouteComponent() {
       {/* Edit Hall Dialog */}
       <Dialog
         open={isEditHallDialogOpen}
-        onClose={(...args: any[]) => {
+        onClose={(...args: unknown[]) => {
           const reason = args[1] as string | undefined;
           if (reason === "escapeKeyDown") {
             closeEditHallDialogSimple();
@@ -1208,7 +1230,7 @@ function RouteComponent() {
       {/* Add Day Dialog */}
       <Dialog
         open={isAddDayDialogOpen}
-        onClose={(...args: any[]) => {
+        onClose={(...args: unknown[]) => {
           const reason = args[1] as string | undefined;
           if (reason === "escapeKeyDown") {
             closeAddDayDialogSimple();
@@ -1324,7 +1346,7 @@ function RouteComponent() {
       {/* Edit Day Dialog */}
       <Dialog
         open={isEditDayDialogOpen}
-        onClose={(...args: any[]) => {
+        onClose={(...args: unknown[]) => {
           const reason = args[1] as string | undefined;
           if (reason === "escapeKeyDown") {
             closeEditDayDialogSimple();

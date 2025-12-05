@@ -38,6 +38,8 @@ async def add_position(
         can_desire=request.can_desire,
         has_halls=request.has_halls,
         is_manager=request.is_manager,
+        score=request.score,
+        description=request.description,
     )
     position = await year_service.add_position(position_in=position_in)
     logger.info(f"Added position {request.name}")
@@ -59,6 +61,8 @@ async def edit_position(
         can_desire=request.can_desire,
         has_halls=request.has_halls,
         is_manager=request.is_manager,
+        score=request.score,
+        description=request.description,
     )
     await year_service.edit_position_by_position_id(
         position_id=position_id, position_edit_in=position_edit_in

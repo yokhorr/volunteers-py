@@ -125,6 +125,8 @@ async def get_year_positions(
             can_desire=p.can_desire,
             has_halls=p.has_halls,
             is_manager=p.is_manager,
+            score=p.score,
+            description=p.description,
         )
         for p in positions
     ]
