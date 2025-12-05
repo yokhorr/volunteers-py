@@ -317,17 +317,21 @@ async def generate_certificates(
     env = Environment(loader=FileSystemLoader(str(templates_dir)), autoescape=True)
     template = env.get_template("certificates.html")
 
-    # Load SVG background from /ref/temp.svg and convert to base64 data URI
-    # Go up one more level to get to project root, then to ref/
-    project_root = Path(__file__).parent.parent.parent.parent.parent.parent
-    svg_path = project_root / "ref" / "temp.svg"
+    # Load SVG background from volunteers/static/temp.svg and convert to base64 data URI
+    # Path: router.py -> year/ -> admin/ -> v1/ -> api/ -> volunteers/ -> static/
+    svg_path = Path(__file__).parent.parent.parent.parent.parent / "static" / "temp.svg"
     svg_data_uri = ""
+    logger.debug(f"Looking for SVG at: {svg_path}")
+    logger.debug(f"SVG exists: {svg_path.exists()}")
     if svg_path.exists():
         import base64
 
         svg_content = svg_path.read_bytes()
         svg_base64 = base64.b64encode(svg_content).decode("utf-8")
         svg_data_uri = f"data:image/svg+xml;base64,{svg_base64}"
+        logger.info(f"Successfully loaded SVG background from {svg_path}")
+    else:
+        logger.warning(f"SVG background not found at {svg_path}")
 
     # Render template
     html_content = template.render(

@@ -107,7 +107,7 @@ function RouteComponent() {
                     <strong>{t("Experience")}</strong>
                   </TableCell>
                   <TableCell>
-                    <strong>{t("Total Assessments")}</strong>
+                    <strong>{t("Assessments this year")}</strong>
                   </TableCell>
                 </TableRow>
               </TableHead>
