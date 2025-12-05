@@ -65,14 +65,14 @@ volunteers/
 - [X] Day Position assignment table
 - [X] Experience in the assignment table
 - [X] Experiment with a sliding drawer for the users
-- [ ] Scores
+- [X] Scores
 - [X] Hall manager positions
 - [X] Attendance
 - [X] Copy assignments from one day to another
-- [ ] Year specific positions should be copied from the previous year with theirs scores saved
-- [ ] Diploma generation
-- [ ] csv export
-- [ ] Reactive assignments broadcasts
-- [ ] swap halls and positions so that positions are inside halls.
-- [ ] Gender in regestration form
+- [X] Year specific positions should be copied from the previous year with theirs scores saved
+- [X] Diploma generation
+- [X] csv export
+- [X] Reactive assignments broadcasts
+- [X] swap halls and positions so that positions are inside halls.
+- [X] Gender in regestration form
 - [ ] Notifications by selecting users
